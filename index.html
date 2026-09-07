@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#FAF6EE">
+    <title>All Jao Games</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="wheel-engine.js" defer></script>
+    <script src="wheel-state.js" defer></script>
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+        <symbol id="i-wheel" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="M12 3v7m0 4v7M3 12h7m4 0h7M5.6 5.6l5 5m2.8 2.8 5 5m0-12.8-5 5m-2.8 2.8-5 5"/></symbol>
+        <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 7h16M4 17h16M8 4v6m8 4v6"/></symbol>
+        <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+        <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6m4-6v6"/></symbol>
+        <symbol id="i-gift" viewBox="0 0 24 24"><path d="M4 11v10h16V11M3 7h18v4H3zM12 7v14"/><path d="M12 7H8a3 3 0 1 1 3-3zm0 0h4a3 3 0 1 0-3-3z"/></symbol>
+        <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+        <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></symbol>
+        <symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5z"/></symbol>
+    </svg>
+    <div id="page-login" class="page active">
+        <div class="hero-visual-panel">
+            <div class="hero-logo"><span>All Jao Games<span class="brand-dot">.</span></span></div>
+            <div class="hero-landscape" aria-hidden="true"><span></span></div>
+            <div class="hero-quote">“A world of timeless games, brought beautifully to your event.”</div>
+        </div>
+        <div class="login-form-panel">
+            <form id="login-form" class="content-container">
+                <div class="header-text"><h1 class="welcome-heading">Welcome To All Jao Games</h1><p class="welcome-subheading">We've kept a spot warm for you. Log in below to get settled.</p></div>
+                <div class="credentials-form">
+                    <div class="field-group"><label class="field-label" for="username">Username</label><div class="input-container"><input type="text" id="username" placeholder="xxxxxxx" autocomplete="username"></div></div>
+                    <div class="field-group"><label class="field-label" for="password">Password</label><div class="input-container"><input type="password" id="password" placeholder="••••••••••••" autocomplete="current-password"></div></div>
+                </div>
+                <div class="actions-group"><button type="submit" class="primary-login-button">Sign In</button><button type="button" class="continue-guest-button" data-page="page-guest">Continue as Guest</button></div>
+            </form>
+        </div>
+    </div>
+    <section id="page-guest" class="page app-page" aria-labelledby="games-title">
+        <header class="app-header"><a class="brand" href="#" data-page="page-guest">All Jao Games<span>.</span></a><nav aria-label="เมนูหลัก"><span class="nav-current">เกมทั้งหมด</span><button class="nav-button admin-only" data-page="page-admin" hidden>ตั้งค่าเกม</button><button class="nav-button" data-action="logout">กลับหน้าหลัก <svg class="icon"><use href="#i-arrow"/></svg></button></nav></header>
+        <main class="page-content lobby-content">
+            <div class="eyebrow">A LITTLE PLAY, A LOT OF JOY</div><h1 id="games-title" class="page-title">ให้ทุกจังหวะ มีความสนุก</h1><p class="page-subtitle">เลือกเกมที่ชอบ แล้วสร้างช่วงเวลาดี ๆ ไปด้วยกัน</p>
+            <div class="game-grid">
+                <button class="game-card featured-game" data-page="page-wheel">
+                    <div class="game-art"><div class="mini-wheel"><span>Jao<span>✦</span></span></div><span class="art-star star-one">✦</span><span class="art-star star-two">✧</span><span class="available-tag"><span></span> พร้อมเล่น</span></div>
+                    <div class="game-card-content"><span class="eyebrow">GAME 01</span><h2>วงล้อสุ่ม</h2><p>หมุนวงล้อ ลุ้นของขวัญ แล้วให้โชคเลือกให้คุณ</p><span class="card-link">เริ่มเล่น <svg class="icon"><use href="#i-arrow"/></svg></span></div>
+                </button>
+                <div class="game-card upcoming"><div class="upcoming-art"><svg class="icon"><use href="#i-lock"/></svg><span>02</span></div><div class="game-card-content"><span class="eyebrow">GAME 02</span><h2>ความสนุกครั้งต่อไป</h2><p>อีกหนึ่งเกมที่รอให้คุณมาค้นพบ</p><span class="coming-soon">เร็ว ๆ นี้</span></div></div>
+                <div class="game-card upcoming"><div class="upcoming-art"><svg class="icon"><use href="#i-lock"/></svg><span>03</span></div><div class="game-card-content"><span class="eyebrow">GAME 03</span><h2>ความสนุกครั้งต่อไป</h2><p>อีกหนึ่งเกมที่รอให้คุณมาค้นพบ</p><span class="coming-soon">เร็ว ๆ นี้</span></div></div>
+                <div class="game-card upcoming"><div class="upcoming-art"><svg class="icon"><use href="#i-lock"/></svg><span>04</span></div><div class="game-card-content"><span class="eyebrow">GAME 04</span><h2>ความสนุกครั้งต่อไป</h2><p>อีกหนึ่งเกมที่รอให้คุณมาค้นพบ</p><span class="coming-soon">เร็ว ๆ นี้</span></div></div>
+            </div>
+            <div class="lobby-note"><svg class="icon"><use href="#i-spark"/></svg> ช่วงเวลาที่ดี เริ่มต้นด้วยการเล่นด้วยกัน</div>
+        </main>
+        <footer class="app-footer"><span>All Jao Games</span><span>Made for moments together.</span></footer>
+    </section>
+    <section id="page-wheel" class="page app-page" aria-labelledby="wheel-title">
+        <header class="app-header"><a class="brand" href="#" data-page="page-guest">All Jao Games<span>.</span></a><nav aria-label="เมนูเกม"><button class="nav-button" data-page="page-guest">เกมทั้งหมด</button><button class="nav-button admin-only" data-page="page-admin" hidden><svg class="icon"><use href="#i-settings"/></svg> ตั้งค่าเกม</button><span class="user-badge">LET’S PLAY</span></nav></header>
+        <main class="page-content">
+            <div class="title-row"><div><div class="eyebrow">GAME 01 · LUCKY WHEEL</div><h1 id="wheel-title" class="page-title">หมุนความสนุก ลุ้นความโชคดี</h1><p class="page-subtitle">ของขวัญชิ้นต่อไป อาจเป็นของคุณ</p></div></div>
+            <div class="play-layout">
+                <section class="wheel-stage" aria-label="วงล้อสุ่มของรางวัล">
+                    <span class="stage-star stage-star-one" aria-hidden="true">✦</span><span class="stage-star stage-star-two" aria-hidden="true">✧</span>
+                    <button id="spin-button" type="button" class="wheel-frame wheel-trigger" aria-labelledby="spin-label" aria-describedby="spin-status"><span class="wheel-pointer" aria-hidden="true"></span><canvas id="game-wheel" width="900" height="900" role="img" aria-label="วงล้อสุ่มของรางวัล"></canvas><span class="wheel-hub"><span aria-hidden="true">Jao</span><small id="spin-label">กดเพื่อสุ่ม</small></span></button>
+                    <div class="wheel-controls"><p id="spin-status" class="spin-status" role="status">พร้อมลุ้นแล้วหรือยัง?</p><p class="micro-copy">กดที่วงล้อ 1 ครั้ง แล้วรอวงล้อหยุดเพื่อดูผลรางวัล</p></div>
+                </section>
+            </div>
+        </main>
+        <footer class="app-footer"><span>All Jao Games</span><span>A little spin. A little surprise.</span></footer>
+    </section>
+    <section id="page-admin" class="page app-page" aria-labelledby="admin-title">
+        <header class="app-header"><a class="brand" href="#" data-page="page-guest">All Jao Games<span>.</span></a><nav aria-label="เมนูแอดมิน"><button class="nav-button" data-page="page-guest">เกมทั้งหมด</button><span class="nav-current">ตั้งค่าเกม</span><span class="user-badge">ADMIN</span><button class="nav-button" data-action="logout">ออกจากระบบ <svg class="icon"><use href="#i-arrow"/></svg></button></nav></header>
+        <main class="page-content admin-content">
+            <div class="title-row"><div><div class="eyebrow">MAKE IT YOUR OWN</div><h1 id="admin-title" class="page-title">ตั้งค่าความสนุก</h1><p class="page-subtitle">ออกแบบวงล้อให้พอดีกับงานของคุณ</p></div><button class="button button-secondary" data-page="page-wheel"><svg class="icon"><use href="#i-wheel"/></svg> ไปหน้าเล่นเกม</button></div>
+            <div class="game-tabs" aria-label="เลือกเกมที่ต้องการตั้งค่า"><span class="game-tab selected"><svg class="icon"><use href="#i-wheel"/></svg> 01 · วงล้อสุ่ม</span><button class="game-tab" disabled>02 · เร็ว ๆ นี้ <svg class="icon"><use href="#i-lock"/></svg></button><button class="game-tab" disabled>03 · เร็ว ๆ นี้ <svg class="icon"><use href="#i-lock"/></svg></button><button class="game-tab" disabled>04 · เร็ว ๆ นี้ <svg class="icon"><use href="#i-lock"/></svg></button></div>
+            <form id="settings-form" novalidate>
+                <div class="admin-layout">
+                    <div class="settings-main">
+                        <section class="panel settings-panel"><div class="section-heading"><div><h2>ของรางวัลบนวงล้อ</h2><p class="micro-copy">จำนวนทั้งหมดเป็นสต็อก แต่ละรางวัลแสดงเพียง 1 ช่อง</p></div><button type="button" id="add-prize" class="button button-secondary button-small"><svg class="icon"><use href="#i-plus"/></svg> เพิ่มรายการ</button></div>
+                            <div class="prize-table-wrap"><table class="prize-table"><thead><tr><th scope="col">สี</th><th scope="col">ชื่อของรางวัล</th><th scope="col">ทั้งหมด (ชิ้น)</th><th scope="col">จ่ายแล้ว</th><th scope="col">คงเหลือ</th><th scope="col">น้ำหนักสุ่ม</th><th scope="col">โอกาสออก</th><th scope="col"><span class="sr-only">ลบ</span></th></tr></thead><tbody id="prize-editor"></tbody></table></div>
+                            <p class="table-scroll-hint">เลื่อนตารางไปทางขวาเพื่อปรับเรทและลบรายการ →</p>
+                            <div class="table-footer"><span id="editor-total">0 รายการ · เหลือ 0 ชิ้น</span><span>สูงสุด 30 รายการ · รายการละ 999,999 ชิ้น</span></div>
+                            <p id="weight-explanation" class="panel-note">โอกาสออกคำนวณจากจำนวนคงเหลือ × น้ำหนักสุ่ม · รางวัลหมดจะไม่ออกอีก</p>
+                        </section>
+                        <section class="panel mode-panel"><div class="section-heading"><div><h2>กำหนดโอกาสในแบบของคุณ</h2><p class="micro-copy">เลือกการสุ่มที่เหมาะกับงาน</p></div><svg class="icon mode-icon"><use href="#i-spark"/></svg></div><label class="checkbox-card" for="equal-chance"><input type="checkbox" id="equal-chance"><span><strong>ให้ของทุกชิ้นมีโอกาสออกเท่ากัน</strong><small>ทุกชิ้นที่ยังเหลือมีโอกาสเท่ากัน โดยไม่ใช้เรทที่ตั้งไว้ โอกาสรวมของแต่ละชนิดขึ้นกับจำนวนคงเหลือ แต่แสดงเพียง 1 ช่องต่อชนิด</small></span></label><p id="mode-explanation" class="panel-note">เมื่อไม่ติ๊ก ระบบจะสุ่มตามน้ำหนักที่ตั้งไว้และหยุดอัตโนมัติ</p></section>
+                    </div>
+                    <aside class="panel preview-panel"><span class="eyebrow">A LITTLE PREVIEW</span><h2>วงล้อของคุณ</h2><div class="wheel-frame preview-wheel-frame"><div class="wheel-pointer" aria-hidden="true"></div><canvas id="preview-wheel" width="600" height="600" role="img" aria-label="ตัวอย่างวงล้อตามค่าที่กำลังแก้ไข"></canvas><div class="wheel-hub" aria-hidden="true"><span>Jao</span></div></div><div class="preview-stats"><div><strong id="preview-items">0</strong><span>ของรางวัล</span></div><div><strong id="preview-segments">0</strong><span>คงเหลือ (ชิ้น)</span></div></div><p class="micro-copy">ตัวอย่างเปลี่ยนตามที่แก้ไข<br>บันทึกเพื่อใช้ในหน้าเล่นเกม</p></aside>
+                </div>
+                <div id="settings-errors" class="form-errors" role="alert" hidden></div>
+                <div class="save-bar"><div><span id="save-status" class="save-status" role="status">ใช้การตั้งค่าเริ่มต้น</span><p class="micro-copy">การตั้งค่าจะถูกเก็บในเบราว์เซอร์นี้</p></div><div class="save-actions"><button type="button" id="discard-settings" class="button button-quiet" disabled>ยกเลิกการแก้ไข</button><button type="submit" id="save-settings" class="button button-primary"><svg class="icon"><use href="#i-check"/></svg> บันทึกการตั้งค่า</button></div></div>
+            </form>
+            <section class="panel logs-panel" aria-labelledby="logs-title">
+                <div class="section-heading"><div><div class="eyebrow">SPIN HISTORY</div><h2 id="logs-title">ประวัติการออกรางวัล</h2><p id="log-count" class="micro-copy" role="status">ยังไม่มีประวัติ</p></div><div class="log-actions"><button type="button" id="export-logs" class="button button-secondary"><svg class="icon"><use href="#i-arrow"/></svg> ส่งออก CSV</button><button type="button" id="clear-logs" class="button button-danger"><svg class="icon"><use href="#i-trash"/></svg> ลบประวัติทั้งหมด</button></div></div>
+                <p class="panel-note stock-note">รางวัลแต่ละชนิดแสดง 1 ช่องบนวงล้อ เมื่อจ่ายครบจะถูกนำออกจากวงล้อ · เติมสต็อกได้โดยเพิ่มจำนวนทั้งหมดแล้วบันทึก · การลบประวัติจะไม่คืนสต็อกหรือรีเซ็ตยอดจ่าย</p>
+                <div class="log-table-wrap"><table class="log-table"><thead><tr><th scope="col">วัน / เวลา</th><th scope="col">ของรางวัล</th><th scope="col">ออก (ชิ้น)</th><th scope="col">เหลือหลังสุ่ม</th><th scope="col">จัดการ</th></tr></thead><tbody id="log-rows"></tbody></table></div>
+                <div class="log-pagination"><span id="log-page-info" class="micro-copy"></span><div><button id="logs-prev" class="button button-quiet button-small" type="button">ก่อนหน้า</button><button id="logs-next" class="button button-quiet button-small" type="button">ถัดไป</button></div></div>
+                <p class="micro-copy">ประวัติและสต็อกบันทึกในเบราว์เซอร์นี้ · ไฟล์ CSV ส่งออกประวัติทั้งหมดที่ยังไม่ได้ลบ</p>
+            </section>
+        </main>
+        <footer class="app-footer"><span>All Jao Games</span><span>Your game. Your little details.</span></footer>
+    </section>
+    <dialog id="custom-alert" class="app-dialog" aria-labelledby="alert-title"><div class="dialog-content"><div class="dialog-symbol">!</div><h2 id="alert-title">เข้าสู่ระบบไม่สำเร็จ</h2><p id="alert-message">Username หรือ Password ไม่ถูกต้อง</p><button class="button button-primary" data-close="custom-alert">เข้าใจแล้ว</button></div></dialog>
+    <dialog id="result-dialog" class="app-dialog result-dialog" aria-labelledby="result-title"><div class="result-sparkles" aria-hidden="true">✧ &nbsp; ✦ &nbsp; ✧</div><div class="dialog-content"><div class="eyebrow">A LITTLE SURPRISE FOR YOU</div><div class="result-gift"><svg class="icon"><use href="#i-gift"/></svg></div><h2 id="result-title">วงล้อเลือกให้คุณแล้ว!</h2><p class="result-label" id="result-prize"></p><p class="micro-copy">อีกหนึ่งจังหวะดี ๆ ที่ได้ลุ้นไปด้วยกัน</p><button class="button button-primary" data-close="result-dialog">เล่นอีกครั้ง <svg class="icon"><use href="#i-arrow"/></svg></button></div></dialog>
+    <dialog id="delete-logs-dialog" class="app-dialog" aria-labelledby="delete-logs-title"><div class="dialog-content"><div class="dialog-symbol"><svg class="icon"><use href="#i-trash"/></svg></div><h2 id="delete-logs-title">ลบประวัติการสุ่ม?</h2><p id="delete-logs-message"></p><p class="micro-copy">ยอดจ่ายและสต็อกคงเหลือจะไม่เปลี่ยน รางวัลที่หมดแล้วจะไม่กลับมาในวงล้อ</p><p id="delete-logs-error" class="delete-error" role="alert" hidden></p><button id="confirm-delete-logs" class="button button-danger" type="button">ยืนยันการลบ</button><button class="button button-quiet" data-close="delete-logs-dialog" type="button">ยกเลิก</button></div></dialog>
+    <div id="toast" class="toast" role="status" hidden></div>
+    <noscript><p class="noscript-note">กรุณาเปิด JavaScript เพื่อเข้าสู่ระบบและเล่นเกมวงล้อ</p></noscript>
+</body>
+</html>
