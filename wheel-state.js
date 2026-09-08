@@ -39,6 +39,12 @@
         const selected = new Set(ids);
         return { ...state, logs: state.logs.filter(log => !selected.has(log.id)) };
     }
+    function resetStock(state) {
+        if (!validate(state)) throw new Error('ข้อมูลสต็อกหรือประวัติไม่ถูกต้อง');
+        const next = { ...state, issued: {} };
+        if (!validate(next)) throw new Error('ข้อมูลหลังรีเซ็ตไม่ถูกต้อง');
+        return next;
+    }
     function csv(logs) {
         function cell(value) {
             let text = String(value);
@@ -49,5 +55,5 @@
         logs.forEach(log => rows.push([log.id, log.time, log.label, log.quantity, log.remaining]));
         return '\uFEFF' + rows.map(row => row.map(cell).join(',')).join('\r\n') + '\r\n';
     }
-    return Object.freeze({ create, validate, award, deleteLogs, csv });
+    return Object.freeze({ create, validate, award, deleteLogs, resetStock, csv });
 });

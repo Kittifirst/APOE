@@ -2,8 +2,11 @@
 
 const engine = window.WheelEngine;
 const stateEngine = window.WheelState;
+const memoryGame = window.MemoryGame.init();
+const clawGame = window.ClawGame.init({ showToast: message => showToast(message) });
 const STORAGE_KEY = 'all-jao-games.wheel.v2';
 const LEGACY_KEY = 'all-jao-games.wheel.v1';
+const SESSION_KEY = 'all-jao-games.wheel.session.v1';
 const $ = id => document.getElementById(id);
 const clone = value => JSON.parse(JSON.stringify(value));
 let storageMessage = '';
@@ -25,6 +28,7 @@ let spinToken = 0;
 let logPage = 0;
 const LOG_PAGE_SIZE = 20;
 let pendingDeleteIds = [];
+let resettingStock = false;
 
 function readState() {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -81,22 +85,49 @@ function showToast(message) {
     toastTimer = setTimeout(() => { $('toast').hidden = true; }, 4500);
 }
 
+function saveSession() {
+    try {
+        sessionStorage.setItem(SESSION_KEY, JSON.stringify({ isAdmin, page: activePage }));
+    } catch (_) {
+        // Session persistence is optional; the game remains usable if storage is blocked.
+    }
+}
+
+function restoreSession() {
+    try {
+        const saved = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
+        if (!saved || typeof saved !== 'object') return;
+        isAdmin = saved.isAdmin === true;
+        const page = ['page-guest', 'page-wheel', 'page-memory', 'page-claw', 'page-admin', 'page-memory-admin', 'page-claw-admin'].includes(saved.page)
+            ? saved.page : 'page-guest';
+        switchPage(isAdmin || page !== 'page-admin' ? page : 'page-login');
+    } catch (_) {
+        sessionStorage.removeItem(SESSION_KEY);
+    }
+}
+
 function switchPage(pageId) {
-    if (!['page-login', 'page-guest', 'page-wheel', 'page-admin'].includes(pageId)) return;
-    if (pageId === 'page-admin' && !isAdmin) {
+    if (!['page-login', 'page-guest', 'page-wheel', 'page-memory', 'page-claw', 'page-admin', 'page-memory-admin', 'page-claw-admin'].includes(pageId)) return;
+    if (['page-admin', 'page-memory-admin', 'page-claw-admin'].includes(pageId) && !isAdmin) {
         showToast('กรุณาเข้าสู่ระบบแอดมินเพื่อตั้งค่าเกม');
         pageId = 'page-login';
     }
     if (activePage === 'page-wheel' && pageId !== 'page-wheel') cancelSpin();
+    if (activePage === 'page-claw' && pageId !== 'page-claw') clawGame.cancel();
     applyPendingSettings();
     document.querySelectorAll('.page').forEach(page => page.classList.toggle('active', page.id === pageId));
     document.querySelectorAll('.admin-only').forEach(button => { button.hidden = !isAdmin; });
     activePage = pageId;
+    saveSession();
     if (pageId === 'page-admin') { renderEditor(); renderLogs(); }
     if (pageId === 'page-wheel') {
         renderGame();
         if (dirty && isAdmin) showToast('หน้าเล่นใช้ค่าที่บันทึกแล้ว การแก้ไขของคุณยังอยู่ในหน้าตั้งค่า');
     }
+    if (pageId === 'page-memory') memoryGame.render();
+    if (pageId === 'page-memory-admin') memoryGame.showAdmin();
+    if (pageId === 'page-claw') clawGame.render();
+    if (pageId === 'page-claw-admin') clawGame.renderAdmin();
     window.scrollTo(0, 0);
     const heading = $(pageId).querySelector('h1');
     if (heading) {
@@ -118,11 +149,13 @@ function handleLogin(event) {
 
 function logout() {
     cancelSpin();
+    clawGame.cancel();
     isAdmin = false;
     draft = clone(settings);
     dirty = false;
     $('username').value = '';
     $('password').value = '';
+    try { sessionStorage.removeItem(SESSION_KEY); } catch (_) { /* optional storage */ }
     switchPage('page-login');
 }
 
@@ -536,6 +569,37 @@ async function deleteSelectedLogs() {
     }
 }
 
+function askResetStock() {
+    if (!isAdmin || resettingStock) return;
+    $('reset-stock-error').hidden = true;
+    $('reset-stock-dialog').showModal();
+}
+
+async function resetStock() {
+    if (!isAdmin || resettingStock) return;
+    resettingStock = true;
+    $('confirm-reset-stock').disabled = true;
+    try {
+        await withWheelLock(() => {
+            writeState(stateEngine.resetStock(readState()));
+        });
+        draft = clone(settings);
+        dirty = false;
+        logPage = 0;
+        $('reset-stock-dialog').close();
+        renderEditor();
+        renderLogs();
+        showToast('เริ่มสต็อกใหม่แล้ว ของรางวัลกลับมาครบตามจำนวนทั้งหมด ประวัติยังอยู่ครบ');
+    } catch (error) {
+        $('reset-stock-error').textContent = error.message.includes('แท็บ') || error.message.includes('HTTPS')
+            ? error.message : 'รีเซ็ตไม่ได้ กรุณาตรวจสอบการบันทึกข้อมูลแล้วลองอีกครั้ง';
+        $('reset-stock-error').hidden = false;
+    } finally {
+        resettingStock = false;
+        $('confirm-reset-stock').disabled = false;
+    }
+}
+
 function exportLogs() {
     if (!isAdmin) return;
     try {
@@ -630,6 +694,8 @@ $('log-rows').addEventListener('click', event => {
     if (button) askDeleteLogs([button.dataset.deleteLog]);
 });
 $('confirm-delete-logs').addEventListener('click', deleteSelectedLogs);
+$('reset-stock').addEventListener('click', askResetStock);
+$('confirm-reset-stock').addEventListener('click', resetStock);
 $('logs-prev').addEventListener('click', () => { if (logPage > 0) logPage -= 1; renderLogs(); });
 $('logs-next').addEventListener('click', () => { logPage += 1; renderLogs(); });
 window.addEventListener('pagehide', cancelSpin);
@@ -640,3 +706,4 @@ if (document.fonts && document.fonts.ready) {
     });
 }
 if (storageMessage) showToast(storageMessage);
+restoreSession();

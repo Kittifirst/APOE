@@ -60,6 +60,17 @@ test('deleting selected rows preserves other logs, counters, and prize definitio
     assert.equal(state.logs.length, 2);
 });
 
+test('resetting stock starts a new round and preserves its history without mutating previous state', () => {
+    const issued = ledger.award(ledger.create(config), 'a', 'spin-1', time);
+    const next = ledger.resetStock(issued);
+    assert.deepEqual(issued.issued, { a: 1 });
+    assert.equal(issued.logs.length, 1);
+    assert.deepEqual(next.issued, {});
+    assert.deepEqual(next.logs, issued.logs);
+    assert.deepEqual(next.settings, issued.settings);
+    assert.equal(engine.buildSegments(next.settings, next.issued).length, 2);
+});
+
 test('CSV preserves Thai, escapes commas and quotes, and neutralizes formulas', () => {
     const logs = [
         { id: '1', time, label: 'ของขวัญ, "พิเศษ"\nบรรทัดสอง', quantity: 1, remaining: 0 },
