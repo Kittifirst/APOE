@@ -4,6 +4,7 @@ const engine = window.WheelEngine;
 const stateEngine = window.WheelState;
 const memoryGame = window.MemoryGame.init();
 const clawGame = window.ClawGame.init({ showToast: message => showToast(message) });
+const quizGame = window.QuizGame.init({ showToast: message => showToast(message) });
 const STORAGE_KEY = 'all-jao-games.wheel.v2';
 const LEGACY_KEY = 'all-jao-games.wheel.v1';
 const SESSION_KEY = 'all-jao-games.wheel.session.v1';
@@ -98,7 +99,7 @@ function restoreSession() {
         const saved = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
         if (!saved || typeof saved !== 'object') return;
         isAdmin = saved.isAdmin === true;
-        const page = ['page-guest', 'page-wheel', 'page-memory', 'page-claw', 'page-admin', 'page-memory-admin', 'page-claw-admin'].includes(saved.page)
+        const page = ['page-guest', 'page-wheel', 'page-memory', 'page-claw', 'page-quiz', 'page-admin', 'page-memory-admin', 'page-claw-admin', 'page-quiz-admin'].includes(saved.page)
             ? saved.page : 'page-guest';
         switchPage(isAdmin || page !== 'page-admin' ? page : 'page-login');
     } catch (_) {
@@ -107,13 +108,14 @@ function restoreSession() {
 }
 
 function switchPage(pageId) {
-    if (!['page-login', 'page-guest', 'page-wheel', 'page-memory', 'page-claw', 'page-admin', 'page-memory-admin', 'page-claw-admin'].includes(pageId)) return;
-    if (['page-admin', 'page-memory-admin', 'page-claw-admin'].includes(pageId) && !isAdmin) {
+    if (!['page-login', 'page-guest', 'page-wheel', 'page-memory', 'page-claw', 'page-quiz', 'page-admin', 'page-memory-admin', 'page-claw-admin', 'page-quiz-admin'].includes(pageId)) return;
+    if (['page-admin', 'page-memory-admin', 'page-claw-admin', 'page-quiz-admin'].includes(pageId) && !isAdmin) {
         showToast('กรุณาเข้าสู่ระบบแอดมินเพื่อตั้งค่าเกม');
         pageId = 'page-login';
     }
     if (activePage === 'page-wheel' && pageId !== 'page-wheel') cancelSpin();
     if (activePage === 'page-claw' && pageId !== 'page-claw') clawGame.cancel();
+    if (activePage === 'page-quiz' && pageId !== 'page-quiz') quizGame.cancel();
     applyPendingSettings();
     document.querySelectorAll('.page').forEach(page => page.classList.toggle('active', page.id === pageId));
     document.querySelectorAll('.admin-only').forEach(button => { button.hidden = !isAdmin; });
@@ -128,6 +130,8 @@ function switchPage(pageId) {
     if (pageId === 'page-memory-admin') memoryGame.showAdmin();
     if (pageId === 'page-claw') clawGame.render();
     if (pageId === 'page-claw-admin') clawGame.renderAdmin();
+    if (pageId === 'page-quiz') quizGame.render();
+    if (pageId === 'page-quiz-admin') quizGame.renderAdmin();
     window.scrollTo(0, 0);
     const heading = $(pageId).querySelector('h1');
     if (heading) {
@@ -150,6 +154,7 @@ function handleLogin(event) {
 function logout() {
     cancelSpin();
     clawGame.cancel();
+    quizGame.cancel();
     isAdmin = false;
     draft = clone(settings);
     dirty = false;

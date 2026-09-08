@@ -1,0 +1,7 @@
+# Local dummy previews
+/dummy/
+/dummy.html
+
+# Local dependencies and npm cache
+node_modules/
+.npm-cache/

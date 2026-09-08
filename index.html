@@ -11,6 +11,7 @@
     <script src="wheel-state.js" defer></script>
     <script src="matching-game.js" defer></script>
     <script src="claw-game.js" defer></script>
+    <script src="quiz-game.js" defer></script>
     <script src="script.js" defer></script>
 </head>
 <body>
@@ -65,6 +66,19 @@
             <div class="lobby-note"><svg class="icon"><use href="#i-spark"/></svg> ช่วงเวลาที่ดี เริ่มต้นด้วยการเล่นด้วยกัน</div>
         </main>
         <footer class="app-footer"><span>All Jao Games</span><span>Made for moments together.</span></footer>
+    </section>
+    <section id="page-quiz" class="page app-page" aria-labelledby="quiz-title">
+        <header class="app-header"><a class="brand" href="#" data-page="page-guest">All Jao Games<span>.</span></a><nav aria-label="เมนูเกมตอบคำถาม"><button class="nav-button nav-current" data-page="page-guest">เกมทั้งหมด</button><button class="nav-button admin-only" data-page="page-quiz-admin" hidden>ตั้งค่าเกม</button><span class="user-badge">LET’S PLAY</span></nav></header>
+        <main class="page-content quiz-content">
+            <div class="title-row"><div><div class="eyebrow">GAME 04 · HOW WELL DO YOU KNOW ME?</div><h1 id="quiz-title" class="page-title">รู้ใจฉันแค่ไหน?</h1><p class="page-subtitle">ตอบให้ถูกทั้ง 5 ข้อ และทำเวลาให้เร็วที่สุด</p></div></div>
+            <section id="quiz-intro" class="quiz-intro-layout">
+                <form id="quiz-name-form" class="panel quiz-name-panel" novalidate><div class="eyebrow">READY?</div><h2>กรอกชื่อก่อนเริ่มเล่น</h2><p class="micro-copy">ตัวจับเวลาจะเริ่มทันทีเมื่อกดเริ่มเกม</p><label class="field-group"><span class="field-label">ชื่อผู้เล่น</span><input id="quiz-name" class="editor-input" type="text" maxlength="50" autocomplete="off" placeholder="ใส่ชื่อของคุณ"></label><p id="quiz-name-error" class="delete-error" role="alert" hidden>กรุณากรอกชื่อก่อนเริ่มเล่น</p><button class="button button-primary" type="submit"><svg class="icon"><use href="#i-spark"/></svg> เริ่มเกม</button></form>
+                <section class="panel quiz-leaderboard-panel" aria-labelledby="quiz-leaderboard-title"><div class="section-heading"><div><div class="eyebrow">TOP 5</div><h2 id="quiz-leaderboard-title">อันดับผู้เล่น</h2></div><span class="quiz-sort-note">คะแนนสูง · เวลาเร็ว</span></div><div class="quiz-rank-head"><span>อันดับ</span><span>ชื่อ</span><span>คะแนน</span><span>เวลา</span></div><div id="quiz-leaderboard" class="quiz-rank-list"></div></section>
+            </section>
+            <section id="quiz-play" class="panel quiz-play-panel" hidden aria-live="polite"><div class="quiz-play-top"><div><span id="quiz-progress-text" class="eyebrow">ข้อ 1 / 5</span><div class="quiz-progress-track"><span id="quiz-progress-bar"></span></div></div><div class="quiz-clock"><span>เวลา</span><strong id="quiz-timer">00:00.0</strong></div></div><h2 id="quiz-question" class="quiz-question"></h2><div id="quiz-choices" class="quiz-choices"></div><button id="quiz-confirm" class="button button-primary quiz-confirm" type="button" disabled>ยืนยันคำตอบ <svg class="icon"><use href="#i-arrow"/></svg></button></section>
+            <section id="quiz-result" class="panel quiz-result" hidden><div class="eyebrow">FINISH!</div><h2>ตอบครบแล้ว เยี่ยมมาก!</h2><div class="quiz-result-stats"><div><span>คะแนน</span><strong id="quiz-result-score">0 / 5</strong></div><div><span>เวลาที่ใช้</span><strong id="quiz-result-time">00:00.0</strong></div></div><p id="quiz-result-message"></p><button id="quiz-play-again" class="button button-primary" type="button">ส่งต่อให้คนถัดไป <svg class="icon"><use href="#i-arrow"/></svg></button></section>
+        </main>
+        <footer class="app-footer"><span>All Jao Games</span><span>Five questions. One fastest heart.</span></footer>
     </section>
     <section id="page-claw" class="page app-page" aria-labelledby="claw-title">
         <header class="app-header"><a class="brand" href="#" data-page="page-guest">All Jao Games<span>.</span></a><nav aria-label="เมนูเกมตู้คีบ"><button class="nav-button nav-current" data-page="page-guest">เกมทั้งหมด</button><button class="nav-button admin-only" data-page="page-claw-admin" hidden>ตั้งค่าเกม</button><span class="user-badge">LET’S PLAY</span></nav></header>
@@ -169,5 +183,15 @@
     <dialog id="reset-stock-dialog" class="app-dialog" aria-labelledby="reset-stock-title"><div class="dialog-content"><div class="dialog-symbol"><svg class="icon"><use href="#i-reset"/></svg></div><h2 id="reset-stock-title">เริ่มสต็อกใหม่?</h2><p>จำนวนที่จ่ายไปทั้งหมดจะกลับมาเป็นของเหลือ ประวัติการสุ่มจะยังคงอยู่</p><p id="reset-stock-error" class="delete-error" role="alert" hidden></p><button id="confirm-reset-stock" class="button button-danger" type="button">ยืนยันเริ่มสต็อกใหม่</button><button class="button button-quiet" data-close="reset-stock-dialog" type="button">ยกเลิก</button></div></dialog>
     <div id="toast" class="toast" role="status" hidden></div>
     <noscript><p class="noscript-note">กรุณาเปิด JavaScript เพื่อเข้าสู่ระบบและเล่นเกมวงล้อ</p></noscript>
+    <section id="page-quiz-admin" class="page app-page" aria-labelledby="quiz-admin-title">
+        <header class="app-header"><a class="brand" href="#" data-page="page-guest">All Jao Games<span>.</span></a><nav aria-label="เมนูตั้งค่าเกมตอบคำถาม"><button class="nav-button" data-page="page-guest">เกมทั้งหมด</button><button class="nav-button nav-current" data-page="page-admin">ตั้งค่าเกม</button><span class="user-badge">ADMIN</span><button class="nav-button" data-action="logout">ออกจากระบบ <svg class="icon"><use href="#i-arrow"/></svg></button></nav></header>
+        <main class="page-content admin-content quiz-admin-content">
+            <div class="title-row"><div><div class="eyebrow">GAME 04 · HOW WELL DO YOU KNOW ME?</div><h1 id="quiz-admin-title" class="page-title">ตั้งค่าเกมรู้ใจแค่ไหน</h1><p class="page-subtitle">สร้างคลังคำถาม ตัวเลือก และกำหนดคำตอบที่ถูกต้อง</p></div><button class="button button-secondary" data-page="page-quiz"><svg class="icon"><use href="#i-spark"/></svg> ไปหน้าเล่นเกม</button></div>
+            <div class="game-tabs" aria-label="เลือกเกมที่ต้องการตั้งค่า"><button class="game-tab" type="button" data-page="page-admin">01 · วงล้อสุ่ม</button><button class="game-tab" type="button" data-page="page-memory-admin">02 · จับคู่รูปภาพ</button><button class="game-tab" type="button" data-page="page-claw-admin">03 · ตู้คีบแคปซูล</button><span class="game-tab selected">04 · รู้ใจแค่ไหน</span></div>
+            <section class="panel quiz-admin-panel"><div class="section-heading"><div><h2>คลังคำถาม</h2><p id="quiz-question-summary" class="micro-copy">5 คำถาม · เล่นครั้งละ 5 ข้อ</p></div><button id="quiz-add-question" class="button button-secondary button-small" type="button"><svg class="icon"><use href="#i-plus"/></svg> เพิ่มคำถาม</button></div><div id="quiz-question-editor" class="quiz-question-editor"></div><div class="save-bar"><span id="quiz-save-status" class="save-status">ใช้ชุดคำถามที่บันทึกไว้</span><button id="quiz-save-questions" class="button button-primary" type="button"><svg class="icon"><use href="#i-check"/></svg> บันทึกคำถาม</button></div></section>
+            <section class="panel logs-panel quiz-history-panel"><div class="section-heading"><div><div class="eyebrow">PLAYER HISTORY</div><h2>อันดับและประวัติผู้เล่น</h2><p id="quiz-admin-count" class="micro-copy">ผู้เล่นทั้งหมด 0 คน</p></div><button id="quiz-reset-players" class="button button-danger" type="button"><svg class="icon"><use href="#i-trash"/></svg> ลบอันดับทั้งหมด</button></div><p class="panel-note">ข้อมูลผู้เล่นจะเก็บไว้ทั้งหมดจนกว่าแอดมินจะลบ สามารถลบรายคนหรือล้างทั้งหมดได้</p><div class="quiz-rank-head quiz-admin-rank-head"><span>อันดับ</span><span>ชื่อ</span><span>คะแนน</span><span>เวลา</span><span>จัดการ</span></div><div id="quiz-admin-players" class="quiz-rank-list"></div></section>
+        </main>
+        <footer class="app-footer"><span>All Jao Games</span><span>Your questions. Their fastest answers.</span></footer>
+    </section>
 </body>
 </html>
