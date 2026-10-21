@@ -1,0 +1,60 @@
+/* Phone layouts only; keep the desktop and portrait kiosk layouts intact. */
+@media (max-width: 720px) {
+    .app-page { padding-bottom: calc(56px + env(safe-area-inset-bottom)); }
+    .app-header { padding: 14px 16px; gap: 8px; }
+    .app-header .brand { font-size: 21px; }
+    .app-header nav { gap: 4px 14px; align-items: center; }
+    .app-header .nav-button { min-height: 44px; font-size: 13px; }
+    .app-header .user-badge { display: none; }
+    .page-content { padding: 18px 16px 28px; }
+    .page-title { font-size: clamp(23px, 6.2vw, 29px); line-height: 1.4; }
+    .page-subtitle { font-size: 14px; line-height: 1.75; overflow-wrap: anywhere; }
+    h1[tabindex="-1"]:focus { outline: none; }
+    .title-row { gap: 14px; margin-bottom: 18px; }
+    .title-row > div, .panel, .play-layout, .settings-main { min-width: 0; }
+    .game-tabs { margin-block: 0 20px; scroll-snap-type: x proximity; }
+    .game-tab { min-height: 44px; padding: 10px 13px; font-size: 13px; scroll-snap-align: start; }
+    .connection-status { bottom: calc(10px + env(safe-area-inset-bottom)); right: 12px; max-width: calc(100vw - 24px); font-size: 11px; min-height: 36px; }
+    .toast { bottom: calc(62px + env(safe-area-inset-bottom)); }
+    .app-footer { width: calc(100% - 32px); padding-block: 16px; gap: 6px; line-height: 1.6; }
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]), textarea, select { font-size: 16px; }
+    .editor-input { min-height: 42px; }
+
+    #page-wheel .title-row { margin-bottom: 18px; }
+    #page-wheel .title-row .eyebrow { font-size: 8px; letter-spacing: 1.7px; }
+    #page-wheel .page-title { font-size: clamp(23px, 6.3vw, 29px); margin-top: 9px; }
+    #page-wheel .page-subtitle { max-width: 32ch; margin: 7px auto 0; }
+    #page-wheel .wheel-stage { padding: 20px 26px 24px; border-radius: 22px; }
+    #page-wheel .wheel-ritual { width: min(100%, 360px); margin: 32px auto 28px; }
+    #page-wheel .wheel-ritual > .wheel-frame { display: block; position: relative; width: 100%; height: auto; min-width: 0; min-height: 0; padding: 0; aspect-ratio: 1 / 1; --rim: 9px; }
+    /* Removing the canvas from flow avoids Safari stretching the button vertically. */
+    #page-wheel .wheel-frame canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; aspect-ratio: 1 / 1; }
+    #page-wheel .wheel-hub { width: 25%; border-width: 3px; }
+    #page-wheel .wheel-hub .pumpkin-mark { width: clamp(25px, 7vw, 34px); }
+    #page-wheel .wheel-hub small { font-size: 9px; line-height: 1.3; }
+    #page-wheel .wheel-pointer { top: -27px; width: 24px; height: 35px; }
+    #page-wheel .wheel-controls { margin-top: 0; }
+    #page-wheel .spin-status { font-size: 14px; min-height: 24px; }
+    #page-wheel .wheel-controls .micro-copy { font-size: 11px; line-height: 1.7; max-width: 28ch; margin: 6px auto 0; }
+    #page-wheel .wheel-moon { width: 46px; top: 54px; right: 19px; opacity: .4; }
+    #page-wheel .ritual-orbit { inset: -15px; }
+    #page-wheel .wheel-spell-badge { font-size: 8px; gap: 8px; letter-spacing: 1.6px; }
+
+    .memory-stage { padding: 14px; }
+    .memory-status { grid-template-columns: 1fr 1fr; gap: 12px; padding-bottom: 14px; }
+    .memory-status-text { grid-column: 1 / -1; text-align: left; font-size: 13px; }
+    .memory-board { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; margin-top: 18px; }
+    #memory-history-status { margin-top: 12px; }
+    #memory-retry-history { margin-top: 8px; }
+    .claw-cabinet { height: clamp(260px, 42svh, 350px); }
+    .claw-control { min-width: 48px; min-height: 48px; }
+    .quiz-name-panel, .quiz-leaderboard-panel, .settings-panel, .logs-panel { padding: 17px; }
+    .quiz-choices, .quiz-choice-editor { grid-template-columns: 1fr; }
+    .quiz-choice { min-height: 52px; font-size: 15px; }
+    .admin-content .title-row, .memory-admin-content .title-row, .quiz-admin-content .title-row { flex-direction: column; align-items: stretch; }
+    .save-bar { flex-direction: column; align-items: stretch; padding: 16px; }
+    .save-actions { flex-wrap: wrap; }
+    .save-actions .button { flex: 1; }
+    .app-dialog .dialog-content { padding: 24px 20px; }
+    .dialog-content .result-label { font-size: clamp(24px, 7vw, 32px); }
+}

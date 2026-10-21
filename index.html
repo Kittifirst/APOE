@@ -11,6 +11,7 @@
     <link rel="stylesheet" href="styles/motion.css">
     <link rel="stylesheet" href="styles/halloween.css">
     <link rel="stylesheet" href="games/wheel/wheel.css">
+    <link rel="stylesheet" href="styles/mobile.css">
     <script src="app/app-config.js" defer></script>
     <script src="app/storage/shared-store.js" defer></script>
     <script src="app/storage/google-sheets-store.js" defer></script>
@@ -118,7 +119,7 @@
         <header class="app-header"><a class="brand" href="#" data-page="page-guest">A Place on earth<span>.</span></a><nav aria-label="เมนูเกมจับคู่"><button class="nav-button nav-current" data-page="page-guest">เกมทั้งหมด</button><button class="nav-button admin-only" data-page="page-admin" hidden>ตั้งค่าเกม</button><span class="user-badge">LET’S PLAY</span></nav></header>
         <main class="page-content memory-content">
             <div class="title-row"><div><div class="eyebrow">GAME 02 · MEMORY MATCH</div><h1 id="memory-title" class="page-title">จับคู่รูปภาพให้ครบ</h1><p class="page-subtitle">เปิดการ์ดทีละสองใบ จับคู่ให้ครบก่อนเวลาจะหมด</p></div><button id="memory-start" type="button" class="button button-primary"><svg class="icon"><use href="#i-spark"/></svg> เริ่มเกม</button></div>
-            <section class="memory-stage" aria-label="กระดานเกมจับคู่รูปภาพ"><div class="memory-status"><div><span class="eyebrow">เวลาที่เหลือ</span><strong id="memory-timer">01:30</strong></div><div><span class="eyebrow">จับคู่แล้ว</span><strong><span id="memory-matches">0</span> / <span id="memory-total">8</span></strong></div><p id="memory-status-text" class="memory-status-text" role="status">กดเริ่มเกมเพื่อสุ่มตำแหน่งการ์ด</p></div><div id="memory-board" class="memory-board" aria-live="polite"></div></section>
+            <section class="memory-stage" aria-label="กระดานเกมจับคู่รูปภาพ"><div class="memory-status"><div><span class="eyebrow">เวลาที่เหลือ</span><strong id="memory-timer">01:30</strong></div><div><span class="eyebrow">จับคู่แล้ว</span><strong><span id="memory-matches">0</span> / <span id="memory-total">8</span></strong></div><p id="memory-status-text" class="memory-status-text" role="status">กดเริ่มเกมเพื่อสุ่มตำแหน่งการ์ด</p></div><p id="memory-history-status" class="micro-copy" role="status" hidden></p><button id="memory-retry-history" class="button button-secondary button-small" type="button" hidden>ลองบันทึกประวัติอีกครั้ง</button><div id="memory-board" class="memory-board" aria-live="polite"></div></section>
         </main>
         <footer class="app-footer"><span>A Place on earth</span><span>Find the pairs before time runs out.</span></footer>
     </section>

@@ -485,7 +485,11 @@
         async function resetStock() {
             if (!window.confirm('เริ่มสต็อกใหม่? จำนวนที่จ่ายแล้วจะกลับมาเป็นของเหลือ แต่ประวัติยังอยู่ครบ')) return;
             try {
-                await save(ledger.resetStock(latest())); dirty = false; renderAdmin();
+                var store = window.SharedStore;
+                if (store && store.mode === 'sheets' && store.restock) {
+                    var result = await store.restock('claw'); state = result.value; draft = clone(state.settings);
+                } else await save(ledger.resetStock(latest()));
+                dirty = false; renderAdmin();
                 toast('เริ่มสต็อกเกมตู้คีบใหม่แล้ว');
             } catch (_) { toast('เริ่มสต็อกใหม่ไม่ได้ กรุณาตรวจสอบการบันทึกข้อมูลแล้วลองใหม่'); }
         }

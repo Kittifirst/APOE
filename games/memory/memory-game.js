@@ -90,6 +90,8 @@
         var adminDraft = null;
         var adminDirty = false;
         var crop = null;
+        var playRound = null;
+        var reportAttempt = 0;
 
         function element(id) { return document.getElementById(id); }
         function formatTime(seconds) { return String(Math.floor(seconds / 60)).padStart(2, '0') + ':' + String(seconds % 60).padStart(2, '0'); }
@@ -101,12 +103,37 @@
             element('memory-total').textContent = config.pairs.length;
         }
         function stopTimer() { if (timer) window.clearInterval(timer); timer = null; }
+        function sendReport(promise, showSuccess) {
+            var attempt = ++reportAttempt;
+            var status = element('memory-history-status'), retry = element('memory-retry-history');
+            if (showSuccess) { status.hidden = false; status.textContent = 'กำลังบันทึกผลการเล่น…'; }
+            promise.then(function () {
+                if (attempt !== reportAttempt) return;
+                retry.hidden = true;
+                status.hidden = !showSuccess;
+                status.textContent = 'บันทึกผลการเล่นแล้ว';
+            }).catch(function () {
+                if (attempt !== reportAttempt) return;
+                status.hidden = false; status.textContent = 'ยังบันทึกประวัติไม่ได้ ระบบจะลองส่งใหม่เมื่อเชื่อมต่อได้'; retry.hidden = false;
+            });
+        }
+        function reportPlay(stage, outcome) {
+            var store = window.SharedStore;
+            if (!playRound) return;
+            var play = { id: playRound.id, stage: stage, outcome: outcome, total: playRound.total, matched: matched.size,
+                durationMs: Math.max(0, Date.now() - playRound.started), startedAt: new Date(playRound.started).toISOString(),
+                endedAt: stage === 'finish' ? new Date(Date.now()).toISOString() : '' };
+            if (stage === 'finish') playRound = null;
+            if (store && store.recordPlay) sendReport(store.recordPlay('memory', play), stage === 'finish');
+        }
         function cancel() {
+            reportPlay('finish', 'cancelled');
             stopTimer(); window.clearTimeout(mismatchTimer); mismatchTimer = null;
             locked = true; opened = []; renderBoard();
             setStatus('กดเริ่มเกมเพื่อเล่นรอบใหม่');
         }
         function endGame(won) {
+            reportPlay('finish', won ? 'won' : 'timeout');
             stopTimer(); window.clearTimeout(mismatchTimer); mismatchTimer = null; locked = true;
             if (won) document.dispatchEvent(new CustomEvent('jao:celebrate'));
             setStatus(won ? 'เก่งมาก! จับคู่ครบทุกคู่แล้ว' : 'หมดเวลาแล้ว ลองเริ่มเกมใหม่อีกครั้ง');
@@ -146,9 +173,12 @@
             });
         }
         function startGame() {
+            reportPlay('finish', 'cancelled');
             stopTimer(); window.clearTimeout(mismatchTimer); mismatchTimer = null;
             config = load(); cards = makeCards(config); opened = []; matched = new Set(); secondsLeft = config.timeLimit; locked = false;
             deadline = Date.now() + config.timeLimit * 1000;
+            playRound = { id: window.crypto && window.crypto.randomUUID ? window.crypto.randomUUID() : 'memory-' + Date.now() + '-' + Math.random().toString(36).slice(2), started: Date.now(), total: config.pairs.length };
+            reportPlay('start', 'started');
             renderBoard(); updateStatus(); setStatus('เปิดการ์ดสองใบเพื่อจับคู่'); element('memory-start').textContent = 'เริ่มใหม่';
             timer = window.setInterval(function () { secondsLeft = Math.max(0, Math.ceil((deadline - Date.now()) / 1000)); updateStatus(); if (secondsLeft <= 0) endGame(false); }, 200);
         }
@@ -354,6 +384,15 @@
                 } catch (error) { element('memory-save-status').textContent = window.SharedStore ? 'บันทึกไม่ได้: ' + error.message : 'บันทึกไม่ได้ พื้นที่จัดเก็บอาจเต็ม กรุณาลดขนาดรูปแล้วลองใหม่'; element('memory-save-status').classList.add('unsaved'); }
             });
         }
+        element('memory-retry-history').addEventListener('click', function () {
+            var store = window.SharedStore;
+            if (store && store.retryPlays) sendReport(store.retryPlays(), true);
+        });
+        document.addEventListener('jao:playhistory', function (event) {
+            if (event.detail.pending || element('memory-retry-history').hidden) return;
+            element('memory-retry-history').hidden = true;
+            element('memory-history-status').textContent = 'บันทึกประวัติที่ค้างไว้แล้ว';
+        });
         element('memory-board').addEventListener('click', handleCard); element('memory-start').addEventListener('click', startGame); bindAdmin(); bindCrop(); renderAdmin(); updateStatus();
         document.addEventListener('jao:storechange', function (event) {
             if (event.detail.game !== 'memory') return;

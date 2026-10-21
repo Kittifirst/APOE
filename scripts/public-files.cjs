@@ -7,6 +7,7 @@ module.exports = Object.freeze([
     'styles/base.css',
     'styles/motion.css',
     'styles/halloween.css',
+    'styles/mobile.css',
     'app/app-config.js',
     'app/bootstrap.js',
     'app/main.js',

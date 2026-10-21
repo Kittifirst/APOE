@@ -238,6 +238,78 @@ test('memory cannot flip after deadline and changing pages stops its timer', asy
     assert.equal(f.$('memory-board').querySelectorAll('.is-open').length, opened);
 });
 
+test('memory reports one start and one completed result with elapsed time and matched pairs', async t => {
+    const plays = [];
+    const f = fixture(t, { setup(w) {
+        w.SharedStore = { mode: 'sheets', getItem: () => null, recordPlay: async (game, play) => { assert.equal(game, 'memory'); plays.push(play); } };
+    } });
+    f.go('page-memory'); f.click('memory-start');
+    await f.advance(1500);
+    const cards = [...f.$('memory-board').children];
+    const pairs = new Map();
+    for (const card of cards) {
+        const id = card.dataset.key.slice(0, -2);
+        if (!pairs.has(id)) pairs.set(id, []);
+        pairs.get(id).push(card);
+    }
+    for (const pair of pairs.values()) { pair[0].click(); pair[1].click(); }
+    await f.advance(1);
+    f.go('page-guest');
+    assert.deepEqual(plays.map(play => play.stage), ['start', 'finish']);
+    assert.equal(plays[1].id, plays[0].id);
+    assert.equal(plays[1].outcome, 'won');
+    assert.equal(plays[1].matched, 8); assert.equal(plays[1].total, 8);
+    assert.equal(plays[1].durationMs, 1500);
+    assert.equal(f.$('memory-history-status').textContent, 'บันทึกผลการเล่นแล้ว');
+});
+
+test('memory records abandoned and timed-out rounds without double-reporting navigation', async t => {
+    const plays = [];
+    const f = fixture(t, { setup(w) {
+        w.SharedStore = { mode: 'sheets', getItem: () => null, recordPlay: async (_game, play) => { plays.push(play); } };
+    } });
+    f.go('page-memory'); f.click('memory-start'); await f.advance(1000);
+    f.click('memory-start');
+    assert.equal(plays[1].outcome, 'cancelled');
+    await f.advance(90000);
+    f.go('page-guest');
+    assert.deepEqual(plays.map(play => play.outcome), ['started', 'cancelled', 'started', 'timeout']);
+    assert.equal(plays[3].durationMs, 90000);
+});
+
+test('memory exposes a retry when history saving fails and confirms a successful retry', async t => {
+    let retries = 0;
+    const f = fixture(t, { setup(w) {
+        w.SharedStore = { mode: 'sheets', getItem: () => null,
+            recordPlay: async () => { throw new Error('Offline'); }, retryPlays: async () => { retries++; } };
+    } });
+    f.go('page-memory'); f.click('memory-start'); await f.advance(1);
+    assert.equal(f.$('memory-retry-history').hidden, false);
+    f.click('memory-retry-history'); await f.advance(1);
+    assert.equal(retries, 1);
+    assert.equal(f.$('memory-retry-history').hidden, true);
+});
+
+test('both stock reset controls use the cloud restock operation and adopt the returned inventory', async t => {
+    const ledger = require('../games/wheel/wheel-state.js');
+    const engine = require('../games/wheel/wheel-engine.js');
+    const claw = require('../games/claw/claw-game.js');
+    const states = { wheel: ledger.create(engine.DEFAULT_SETTINGS), claw: ledger.create(claw.DEFAULT_SETTINGS) }, calls = [];
+    for (const game of ['wheel', 'claw']) states[game] = ledger.award(states[game], states[game].settings.items[0].id, 'old-' + game, '2026-10-22T00:00:00Z');
+    const f = fixture(t, { setup(w) {
+        w.sessionStorage.setItem('all-jao-games.wheel.session.v1', JSON.stringify({ isAdmin: true, page: 'page-admin' }));
+        w.SharedStore = { mode: 'sheets', hasSession: () => true,
+            getItem: key => key.includes('.wheel.v2') ? JSON.stringify(states.wheel) : key.includes('.claw.v1') ? JSON.stringify(states.claw) : null,
+            setItem() { throw new Error('Stock reset must use the auditable restock operation'); },
+            restock: async game => { calls.push(game); states[game] = ledger.resetStock(states[game]); return { value: states[game] }; } };
+    } });
+    f.click('reset-stock'); f.click('confirm-reset-stock'); await f.advance(1);
+    f.go('page-claw-admin'); f.click('claw-reset-stock'); await f.advance(1);
+    assert.deepEqual(calls, ['wheel', 'claw']);
+    assert.deepEqual(states.wheel.issued, {}); assert.deepEqual(states.claw.issued, {});
+    assert.equal(states.wheel.logs.length, 1); assert.equal(states.claw.logs.length, 1);
+});
+
 function cropFixture(t, options = {}) {
     const images = [], draws = [], exports = [], revoked = [];
     const source = 'data:image/jpeg;base64,Y3JvcHBlZA==';

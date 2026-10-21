@@ -14,6 +14,24 @@
     const pending = new Set();
     let token = '';
     let polling = false;
+    const PLAY_QUEUE_PREFIX = 'jao.pending-play.v1:';
+    function playKey(item) { return PLAY_QUEUE_PREFIX + item.game + ':' + item.play.id + ':' + item.play.stage; }
+    function readPlayQueue() {
+        const items = [];
+        try {
+            for (let index = 0; index < localStorage.length; index++) {
+                const key = localStorage.key(index);
+                if (!key || !key.startsWith(PLAY_QUEUE_PREFIX)) continue;
+                try {
+                    const item = JSON.parse(localStorage.getItem(key));
+                    if (item && item.game === 'memory' && item.play && typeof item.play.id === 'string') items.push(item);
+                } catch (_) { /* An invalid entry must not block other results. */ }
+            }
+        } catch (_) { /* A blocked browser store still permits sending while this page is open. */ }
+        return items.sort((a, b) => Date.parse(a.play.stage === 'start' ? a.play.startedAt : a.play.endedAt) - Date.parse(b.play.stage === 'start' ? b.play.startedAt : b.play.endedAt));
+    }
+    let playQueue = readPlayQueue();
+    let sendingPlays = null;
     try { token = sessionStorage.getItem('jao.sheets.session') || ''; } catch (_) {}
     function connection(state, message) {
         document.dispatchEvent(new CustomEvent('jao:connection', { detail: { state, message } }));
@@ -58,7 +76,7 @@
             try { result = await request(action, { game, ...payload }); }
             catch (error) {
                 // Reuse the same ID if a draw response is lost. The server returns the original award.
-                if (action !== 'draw' || error.code) throw error;
+                if (!['draw', 'restock', 'play'].includes(action) || (error.code && error.code < 500)) throw error;
                 result = await request(action, { game, ...payload });
             }
             cache.set(game, { value: result.value, version: result.version });
@@ -68,6 +86,22 @@
             try { const latest = await request('get', { game }); cache.set(game, latest); } catch (_) { cache.delete(game); }
             throw error;
         } finally { pending.delete(game); changed(game); }
+    }
+    function flushPlays() {
+        if (sendingPlays) return sendingPlays;
+        const queued = new Map(playQueue.map(item => [playKey(item), item]));
+        readPlayQueue().forEach(item => queued.set(playKey(item), item));
+        playQueue = [...queued.values()];
+        sendingPlays = (async () => {
+            while (playQueue.length) {
+                const item = playQueue[0];
+                await mutate(item.game, 'play', { play: item.play });
+                playQueue.shift();
+                try { localStorage.removeItem(playKey(item)); } catch (_) { /* Server IDs make a later resend safe. */ }
+            }
+            document.dispatchEvent(new CustomEvent('jao:playhistory', { detail: { pending: 0 } }));
+        })().finally(() => { sendingPlays = null; });
+        return sendingPlays;
     }
     const api = {
         mode: 'sheets',
@@ -91,11 +125,26 @@
         logout() { token = ''; try { sessionStorage.removeItem('jao.sheets.session'); } catch (_) {} },
         hasSession: () => Boolean(token),
         draw: game => mutate(game, 'draw', { requestId: window.crypto.randomUUID() }),
+        restock(game) {
+            if (!cache.has(game)) throw new Error('ยังอ่านข้อมูลร้านไม่ได้ กรุณาเชื่อมต่อใหม่');
+            return mutate(game, 'restock', { version: cache.get(game).version, requestId: window.crypto.randomUUID() });
+        },
+        recordPlay(game, play) {
+            if (!playQueue.some(item => item.game === game && item.play.id === play.id && item.play.stage === play.stage)) {
+                const item = { game, play };
+                playQueue.push(item);
+                // Separate keys prevent two tabs from overwriting each other's unsent games.
+                try { localStorage.setItem(playKey(item), JSON.stringify(item)); } catch (_) { /* Keep the queue in memory and offer retry. */ }
+            }
+            return flushPlays();
+        },
+        retryPlays: flushPlays,
         refreshAll
     };
     api.ready = refreshAll();
     // The first request can fail before the deferred bootstrap script attaches its handler.
     api.ready.catch(() => {});
+    api.ready.then(() => { if (playQueue.length) return flushPlays(); }).catch(() => {});
     window.SharedStore = Object.freeze(api);
     async function poll() {
         if (polling || document.hidden) return;
@@ -112,4 +161,7 @@
     }
     setInterval(poll, Math.max(15000, Number(config.pollIntervalMs) || 30000));
     window.addEventListener('focus', poll);
+    function retryPlays() { flushPlays().catch(() => {}); }
+    window.addEventListener('online', retryPlays);
+    window.addEventListener('focus', retryPlays);
 })();

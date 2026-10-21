@@ -700,7 +700,10 @@ async function resetStock() {
     $('confirm-reset-stock').disabled = true;
     try {
         await withWheelLock(async () => {
-            await writeState(stateEngine.resetStock(readState()));
+            if (persistentStore.mode === 'sheets' && persistentStore.restock) {
+                const result = await persistentStore.restock('wheel');
+                adoptState(result.value);
+            } else await writeState(stateEngine.resetStock(readState()));
         });
         draft = clone(settings);
         dirty = false;
