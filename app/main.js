@@ -10,6 +10,8 @@ const serverStorage = Boolean(window.SharedStore && window.SharedStore.mode !== 
 const STORAGE_KEY = 'all-jao-games.wheel.v2';
 const LEGACY_KEY = 'all-jao-games.wheel.v1';
 const SESSION_KEY = 'all-jao-games.wheel.session.v1';
+const PAGE_IDS = ['page-login', 'page-guest', 'page-wheel', 'page-memory', 'page-claw', 'page-quiz', 'page-admin', 'page-memory-admin', 'page-claw-admin', 'page-quiz-admin'];
+const ADMIN_PAGES = ['page-admin', 'page-memory-admin', 'page-claw-admin', 'page-quiz-admin'];
 const $ = id => document.getElementById(id);
 const clone = value => JSON.parse(JSON.stringify(value));
 let storageMessage = '';
@@ -32,6 +34,10 @@ let logPage = 0;
 const LOG_PAGE_SIZE = 20;
 let pendingDeleteIds = [];
 let resettingStock = false;
+let navigationReady = false;
+let navigationIndex = 0;
+let restoringHistory = false;
+let backPending = false;
 
 function readState() {
     const raw = persistentStore.getItem(STORAGE_KEY);
@@ -102,23 +108,48 @@ function restoreSession() {
         const saved = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
         if (!saved || typeof saved !== 'object') return;
         isAdmin = saved.isAdmin === true && (persistentStore.mode !== 'sheets' || persistentStore.hasSession());
-        const page = ['page-guest', 'page-wheel', 'page-memory', 'page-claw', 'page-quiz', 'page-admin', 'page-memory-admin', 'page-claw-admin', 'page-quiz-admin'].includes(saved.page)
+        const page = PAGE_IDS.includes(saved.page)
             ? saved.page : 'page-guest';
-        switchPage(isAdmin || page !== 'page-admin' ? page : 'page-login');
+        switchPage(page);
     } catch (_) {
         try { sessionStorage.removeItem(SESSION_KEY); } catch (_) { /* Storage can be blocked. */ }
     }
 }
 
-function switchPage(pageId) {
-    if (!['page-login', 'page-guest', 'page-wheel', 'page-memory', 'page-claw', 'page-quiz', 'page-admin', 'page-memory-admin', 'page-claw-admin', 'page-quiz-admin'].includes(pageId)) return;
-    if (activePage === pageId) return;
-    if (spinning && persistentStore.mode === 'sheets') { showToast('รอรับผลวงล้อก่อนเปลี่ยนหน้านะ'); return; }
-    if (activePage === 'page-claw' && clawGame.isBusy()) { showToast('รอรับผลแคปซูลก่อนเปลี่ยนเกมนะ'); return; }
-    if (['page-admin', 'page-memory-admin', 'page-claw-admin', 'page-quiz-admin'].includes(pageId) && !isAdmin) {
+function canLeavePage() {
+    if (spinning && persistentStore.mode === 'sheets') { showToast('รอรับผลวงล้อก่อนเปลี่ยนหน้านะ'); return false; }
+    if (activePage === 'page-claw' && clawGame.isBusy()) { showToast('รอรับผลแคปซูลก่อนเปลี่ยนเกมนะ'); return false; }
+    return true;
+}
+
+function rememberPage(mode) {
+    if (!navigationReady) return;
+    if (mode === 'push') navigationIndex += 1;
+    window.history[mode + 'State']({
+        ...window.history.state,
+        jaoNavigation: { pageId: activePage, index: navigationIndex }
+    }, '');
+}
+
+function goBack() {
+    if (backPending || restoringHistory || !canLeavePage()) return;
+    if (navigationIndex > 0) {
+        backPending = true;
+        window.history.back();
+    } else {
+        // A restored session may have no earlier page in this tab.
+        switchPage(activePage === 'page-guest' ? 'page-login' : 'page-guest', { historyMode: 'replace' });
+    }
+}
+
+function switchPage(pageId, { historyMode = 'push' } = {}) {
+    if (!PAGE_IDS.includes(pageId) || restoringHistory) return false;
+    if (ADMIN_PAGES.includes(pageId) && !isAdmin) {
         showToast('กรุณาเข้าสู่ระบบแอดมินเพื่อตั้งค่าเกม');
         pageId = 'page-login';
     }
+    if (activePage === pageId) return true;
+    if (!canLeavePage()) return false;
     if (activePage === 'page-wheel' && pageId !== 'page-wheel') cancelSpin();
     if (activePage === 'page-memory' && pageId !== 'page-memory') memoryGame.cancel();
     if (activePage === 'page-claw' && pageId !== 'page-claw') clawGame.cancel();
@@ -127,7 +158,9 @@ function switchPage(pageId) {
     document.querySelectorAll('.page').forEach(page => page.classList.toggle('active', page.id === pageId));
     document.querySelectorAll('.admin-only').forEach(button => { button.hidden = !isAdmin; });
     activePage = pageId;
+    document.querySelectorAll('dialog[open]').forEach(dialog => dialog.close());
     saveSession();
+    if (historyMode !== 'none') rememberPage(historyMode);
     if (pageId === 'page-admin') { renderEditor(); renderLogs(); }
     if (pageId === 'page-wheel') {
         renderGame();
@@ -146,6 +179,45 @@ function switchPage(pageId) {
         heading.focus({ preventScroll: true });
     }
     document.dispatchEvent(new CustomEvent('jao:pagechange', { detail: { pageId } }));
+    return true;
+}
+
+function initializeNavigation() {
+    const savedNavigation = window.history.state?.jaoNavigation;
+    if (PAGE_IDS.includes(savedNavigation?.pageId) && Number.isInteger(savedNavigation.index) && savedNavigation.index >= 0) {
+        navigationIndex = savedNavigation.index;
+        switchPage(savedNavigation.pageId);
+    }
+    navigationReady = true;
+    rememberPage('replace');
+
+    document.querySelectorAll('.app-header nav').forEach(nav => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'nav-button nav-back';
+        button.dataset.action = 'back';
+        button.innerHTML = '<svg class="icon arrow-back" aria-hidden="true"><use href="#i-arrow"/></svg><span>ย้อนกลับ</span>';
+        nav.prepend(button);
+    });
+
+    window.addEventListener('popstate', event => {
+        backPending = false;
+        if (restoringHistory) { restoringHistory = false; return; }
+        const target = event.state?.jaoNavigation;
+        if (!PAGE_IDS.includes(target?.pageId) || !Number.isInteger(target.index) || target.index < 0) return;
+        if (!switchPage(target.pageId, { historyMode: 'none' })) {
+            // Back/Forward must also wait for an in-flight stock award.
+            const distance = navigationIndex - target.index;
+            if (distance) {
+                restoringHistory = true;
+                window.history.go(distance);
+            }
+            return;
+        }
+        navigationIndex = target.index;
+        // History must not reopen admin settings after logout.
+        if (activePage !== target.pageId) rememberPage('replace');
+    });
 }
 
 async function handleLogin(event) {
@@ -676,6 +748,7 @@ document.addEventListener('click', event => {
         switchPage(navigation.dataset.page);
     }
     if (event.target.closest('[data-action="logout"]')) logout();
+    if (event.target.closest('[data-action="back"]')) goBack();
 });
 $('login-form').addEventListener('submit', handleLogin);
 $('spin-button').addEventListener('click', spinWheel);
@@ -759,3 +832,4 @@ if (document.fonts && document.fonts.ready) {
 }
 if (storageMessage) showToast(storageMessage);
 restoreSession();
+initializeNavigation();

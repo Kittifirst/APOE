@@ -83,6 +83,123 @@ test('all ten pages initialize and navigate; guest admin access is blocked', t =
     assert.equal(f.w.document.querySelectorAll('.game-tabs').length, 8);
 });
 
+async function historyChange(f, action, count = 1) {
+    let changes = 0;
+    const onChange = () => { changes += 1; };
+    f.w.addEventListener('popstate', onChange);
+    try {
+        action();
+        // jsdom queues history traversal on the fixture's controlled clock.
+        await f.advance(10);
+        assert.equal(changes, count, 'Expected history traversal events');
+    } finally {
+        f.w.removeEventListener('popstate', onChange);
+    }
+}
+
+test('navigation records distinct pages without adding repeated or invalid destinations', t => {
+    const f = fixture(t);
+    assert.equal(f.w.history.length, 1);
+    assert.equal(f.w.history.state.jaoNavigation.pageId, 'page-login');
+    f.w.document.querySelector('.continue-guest-button').click();
+    f.w.document.querySelector('#page-guest [data-page="page-memory"]').click();
+    assert.equal(f.w.history.length, 3);
+    assert.equal(f.w.history.state.jaoNavigation.pageId, 'page-memory');
+    f.go('page-memory');
+    f.go('missing-page');
+    assert.equal(f.w.history.length, 3);
+});
+
+test('browser Back and Forward restore pages and stop a memory round when leaving', { timeout: 5000 }, async t => {
+    const f = fixture(t);
+    f.go('page-guest'); f.go('page-memory'); f.click('memory-start');
+    await f.advance(500);
+    const time = f.$('memory-timer').textContent;
+    await historyChange(f, () => f.w.history.back());
+    assert.equal(f.page(), 'page-guest');
+    assert.equal(JSON.parse(f.w.sessionStorage.getItem('all-jao-games.wheel.session.v1')).page, 'page-guest');
+    await f.advance(2000);
+    assert.equal(f.$('memory-timer').textContent, time);
+    await historyChange(f, () => f.w.history.forward());
+    assert.equal(f.page(), 'page-memory');
+    await historyChange(f, () => f.w.history.back());
+    await historyChange(f, () => f.w.history.back());
+    assert.equal(f.page(), 'page-login');
+    assert.equal(f.w.history.length, 3);
+});
+
+test('each inner page has a Back button that uses the same browser history', { timeout: 5000 }, async t => {
+    const f = fixture(t);
+    assert.equal(f.w.document.querySelectorAll('.app-header [data-action="back"]').length, 9);
+    f.go('page-guest'); f.go('page-wheel');
+    const back = f.$('page-wheel').querySelector('[data-action="back"]');
+    assert.equal(back.type, 'button');
+    assert.match(back.textContent, /ย้อนกลับ/);
+    await historyChange(f, () => back.click());
+    assert.equal(f.page(), 'page-guest');
+    await historyChange(f, () => f.w.history.forward());
+    assert.equal(f.page(), 'page-wheel');
+    assert.equal(f.w.history.length, 3);
+});
+
+test('a restored session has a safe in-app Back destination without leaving the site', t => {
+    const f = fixture(t, { setup(w) {
+        w.sessionStorage.setItem('all-jao-games.wheel.session.v1', JSON.stringify({ isAdmin: false, page: 'page-memory' }));
+    } });
+    assert.equal(f.page(), 'page-memory');
+    assert.equal(f.w.history.length, 1);
+    f.$('page-memory').querySelector('[data-action="back"]').click();
+    assert.equal(f.page(), 'page-guest');
+    f.$('page-guest').querySelector('[data-action="back"]').click();
+    assert.equal(f.page(), 'page-login');
+    assert.equal(f.w.history.length, 1);
+});
+
+test('a reload reuses the current history entry and browser Back still works', { timeout: 5000 }, async t => {
+    const f = fixture(t, { setup(w) {
+        w.history.replaceState({ jaoNavigation: { pageId: 'page-guest', index: 0 } }, '');
+        w.history.pushState({ jaoNavigation: { pageId: 'page-memory', index: 1 } }, '');
+        w.sessionStorage.setItem('all-jao-games.wheel.session.v1', JSON.stringify({ isAdmin: false, page: 'page-memory' }));
+    } });
+    assert.equal(f.page(), 'page-memory');
+    assert.equal(f.w.history.length, 2);
+    await historyChange(f, () => f.w.history.back());
+    assert.equal(f.page(), 'page-guest');
+});
+
+test('browser history cannot reopen admin settings after logout', { timeout: 5000 }, async t => {
+    const f = fixture(t);
+    f.login(); f.go('page-memory-admin');
+    f.$('page-memory-admin').querySelector('[data-action="logout"]').click();
+    assert.equal(f.page(), 'page-login');
+    await historyChange(f, () => f.w.history.back());
+    assert.equal(f.page(), 'page-login');
+    assert.equal(f.w.history.state.jaoNavigation.pageId, 'page-login');
+    await historyChange(f, () => f.w.history.back());
+    assert.equal(f.page(), 'page-login');
+    await historyChange(f, () => f.w.history.forward());
+    assert.equal(f.page(), 'page-login');
+    assert.ok([...f.w.document.querySelectorAll('.admin-only')].every(button => button.hidden));
+});
+
+test('browser and in-app Back wait for a claw award without losing history', { timeout: 5000 }, async t => {
+    const f = fixture(t);
+    f.go('page-guest'); f.go('page-claw'); f.click('claw-drop');
+    f.$('page-claw').querySelector('[data-action="back"]').click();
+    assert.equal(f.page(), 'page-claw');
+    await historyChange(f, () => f.w.history.back(), 2);
+    assert.equal(f.page(), 'page-claw');
+    assert.equal(f.w.history.state.jaoNavigation.pageId, 'page-claw');
+    assert.equal(f.w.history.length, 3);
+    await f.advance(6000);
+    assert.equal(f.$('claw-result-dialog').open, true);
+    await historyChange(f, () => f.w.history.back());
+    assert.equal(f.page(), 'page-guest');
+    assert.equal(f.$('claw-result-dialog').open, false);
+    await historyChange(f, () => f.w.history.forward());
+    assert.equal(f.page(), 'page-claw');
+});
+
 test('wheel admin and claw admin probability cells remain independent', t => {
     const f = fixture(t); f.login(); f.go('page-claw-admin');
     const before = [...f.$('claw-prize-editor').querySelectorAll('.editor-chance')].map(el => el.textContent);

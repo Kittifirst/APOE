@@ -11,7 +11,8 @@
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; min-height: 100%; background: var(--cream); color: var(--ink); font-family: 'Manrope', 'Noto Sans Thai', Tahoma, sans-serif; }
-body { font-size: 14px; }
+body { font-size: 14px; -webkit-user-select: none; user-select: none; }
+input, textarea, [contenteditable]:not([contenteditable="false"]) { -webkit-user-select: text; user-select: text; }
 button, input { font: inherit; }
 button, a, input { -webkit-tap-highlight-color: transparent; }
 button, a { touch-action: manipulation; }
@@ -60,8 +61,9 @@ h2 { font-size: 17px; font-weight: 700; }
 .app-header { min-height: 90px; padding: 22px max(32px, calc((100% - 1280px) / 2)); display: flex; justify-content: space-between; align-items: center; gap: 28px; border-bottom: 1px solid var(--line); }
 .brand { font-family: 'Fraunces', serif; font-weight: 700; font-size: 26px; letter-spacing: -1px; white-space: nowrap; }
 .brand > span { color: var(--orange); }
-.app-header nav { display: flex; align-items: center; gap: 27px; font-size: 13px; }
+.app-header nav { display: flex; align-items: center; flex-wrap: wrap; gap: 27px; font-size: 13px; }
 .nav-button { display: inline-flex; align-items: center; gap: 9px; border: 0; padding: 6px 0; background: transparent; color: var(--muted); font-weight: 600; }
+.nav-back { color: var(--ink); white-space: nowrap; }
 .nav-button .icon { width: 17px; height: 17px; }
 .nav-current { color: var(--orange); font-weight: 700; }
 .user-badge { font-size: 10px; font-weight: 800; letter-spacing: 1.8px; padding: 7px 11px; border: 1px solid var(--line); border-radius: 6px; color: var(--muted); white-space: nowrap; }
