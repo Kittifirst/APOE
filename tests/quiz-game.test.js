@@ -2,7 +2,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const quiz = require('./quiz-game.js');
+const quiz = require('../games/quiz/quiz-game.js');
 
 test('sortPlayers ranks score first and lower time second', () => {
     const ranked = quiz.sortPlayers([

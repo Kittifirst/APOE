@@ -1,0 +1,14 @@
+{
+  "name": "a-place-on-earth",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node backend/server.cjs",
+    "build": "node scripts/build-pages.cjs",
+    "build:apps-script": "node scripts/build-apps-script.cjs",
+    "test": "node --test tests/*.test.js"
+  },
+  "devDependencies": {
+    "jsdom": "^30.0.1"
+  }
+}

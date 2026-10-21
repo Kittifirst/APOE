@@ -5,6 +5,8 @@ const stateEngine = window.WheelState;
 const memoryGame = window.MemoryGame.init();
 const clawGame = window.ClawGame.init({ showToast: message => showToast(message) });
 const quizGame = window.QuizGame.init({ showToast: message => showToast(message) });
+const persistentStore = window.SharedStore || localStorage;
+const serverStorage = Boolean(window.SharedStore && window.SharedStore.mode !== 'demo');
 const STORAGE_KEY = 'all-jao-games.wheel.v2';
 const LEGACY_KEY = 'all-jao-games.wheel.v1';
 const SESSION_KEY = 'all-jao-games.wheel.session.v1';
@@ -32,14 +34,14 @@ let pendingDeleteIds = [];
 let resettingStock = false;
 
 function readState() {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = persistentStore.getItem(STORAGE_KEY);
     if (raw) {
         const parsed = JSON.parse(raw);
         if (!stateEngine.validate(parsed)) throw new Error('ข้อมูลสต็อกหรือประวัติที่บันทึกไว้ไม่ถูกต้อง');
         hasSavedSettings = true;
         return parsed;
     }
-    const legacy = localStorage.getItem(LEGACY_KEY);
+    const legacy = persistentStore.getItem(LEGACY_KEY);
     const config = legacy ? JSON.parse(legacy) : clone(engine.DEFAULT_SETTINGS);
     if (!engine.validateSettings(config).valid) throw new Error('ข้อมูลตั้งค่าที่บันทึกไว้ไม่ถูกต้อง');
     hasSavedSettings = Boolean(legacy);
@@ -62,16 +64,17 @@ function adoptState(next) {
     if (!dirty) draft = clone(settings);
 }
 
-function writeState(next) {
+async function writeState(next) {
     if (!stateEngine.validate(next)) throw new Error('ข้อมูลที่ต้องการบันทึกไม่ถูกต้อง');
     // Stock and log are committed together: never announce an unsaved award.
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    await persistentStore.setItem(STORAGE_KEY, JSON.stringify(next));
     storageBroken = false;
     hasSavedSettings = true;
     adoptState(next);
 }
 
 async function withWheelLock(action) {
+    if (serverStorage) return action();
     if (!navigator.locks) throw new Error('กรุณาเปิดเกมด้วย Chrome หรือ Edge ผ่าน localhost หรือ HTTPS เพื่อบันทึกสต็อกอย่างถูกต้อง');
     return navigator.locks.request('all-jao-wheel-stock', { ifAvailable: true }, lock => {
         if (!lock) throw new Error('วงล้อกำลังทำงานในอีกแท็บ กรุณารอให้หมุนเสร็จแล้วลองอีกครั้ง');
@@ -98,22 +101,26 @@ function restoreSession() {
     try {
         const saved = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null');
         if (!saved || typeof saved !== 'object') return;
-        isAdmin = saved.isAdmin === true;
+        isAdmin = saved.isAdmin === true && (persistentStore.mode !== 'sheets' || persistentStore.hasSession());
         const page = ['page-guest', 'page-wheel', 'page-memory', 'page-claw', 'page-quiz', 'page-admin', 'page-memory-admin', 'page-claw-admin', 'page-quiz-admin'].includes(saved.page)
             ? saved.page : 'page-guest';
         switchPage(isAdmin || page !== 'page-admin' ? page : 'page-login');
     } catch (_) {
-        sessionStorage.removeItem(SESSION_KEY);
+        try { sessionStorage.removeItem(SESSION_KEY); } catch (_) { /* Storage can be blocked. */ }
     }
 }
 
 function switchPage(pageId) {
     if (!['page-login', 'page-guest', 'page-wheel', 'page-memory', 'page-claw', 'page-quiz', 'page-admin', 'page-memory-admin', 'page-claw-admin', 'page-quiz-admin'].includes(pageId)) return;
+    if (activePage === pageId) return;
+    if (spinning && persistentStore.mode === 'sheets') { showToast('รอรับผลวงล้อก่อนเปลี่ยนหน้านะ'); return; }
+    if (activePage === 'page-claw' && clawGame.isBusy()) { showToast('รอรับผลแคปซูลก่อนเปลี่ยนเกมนะ'); return; }
     if (['page-admin', 'page-memory-admin', 'page-claw-admin', 'page-quiz-admin'].includes(pageId) && !isAdmin) {
         showToast('กรุณาเข้าสู่ระบบแอดมินเพื่อตั้งค่าเกม');
         pageId = 'page-login';
     }
     if (activePage === 'page-wheel' && pageId !== 'page-wheel') cancelSpin();
+    if (activePage === 'page-memory' && pageId !== 'page-memory') memoryGame.cancel();
     if (activePage === 'page-claw' && pageId !== 'page-claw') clawGame.cancel();
     if (activePage === 'page-quiz' && pageId !== 'page-quiz') quizGame.cancel();
     applyPendingSettings();
@@ -138,11 +145,22 @@ function switchPage(pageId) {
         heading.tabIndex = -1;
         heading.focus({ preventScroll: true });
     }
+    document.dispatchEvent(new CustomEvent('jao:pagechange', { detail: { pageId } }));
 }
 
-function handleLogin(event) {
+async function handleLogin(event) {
     if (event) event.preventDefault();
-    if ($('username').value.trim() === 'admin' && $('password').value === '1234') {
+    let authenticated = false;
+    const button = $('login-form').querySelector('[type="submit"]');
+    button.disabled = true;
+    try {
+        if (persistentStore.mode === 'sheets') {
+            await persistentStore.login($('username').value.trim(), $('password').value);
+            authenticated = true;
+        } else authenticated = $('username').value.trim() === 'admin' && $('password').value === '1234';
+    } catch (error) { showToast(error.message); }
+    finally { button.disabled = false; }
+    if (authenticated) {
         isAdmin = true;
         $('password').value = '';
         switchPage('page-admin');
@@ -152,10 +170,14 @@ function handleLogin(event) {
 }
 
 function logout() {
+    if (spinning && persistentStore.mode === 'sheets') { showToast('รอรับผลวงล้อก่อนออกจากเกมนะ'); return; }
+    if (clawGame.isBusy()) { showToast('รอรับผลแคปซูลก่อนออกจากเกมนะ'); return; }
     cancelSpin();
+    memoryGame.cancel();
     clawGame.cancel();
     quizGame.cancel();
     isAdmin = false;
+    if (persistentStore.logout) persistentStore.logout();
     draft = clone(settings);
     dirty = false;
     $('username').value = '';
@@ -173,7 +195,7 @@ function formatPercent(value) {
     return new Intl.NumberFormat('th-TH', { maximumFractionDigits: 2 }).format(value) + '%';
 }
 
-function drawWheel(canvas, segments) {
+function drawWheel(canvas, segments, displayRotation = 0) {
     const ctx = canvas.getContext('2d');
     const size = canvas.width;
     const radius = size / 2;
@@ -199,25 +221,35 @@ function drawWheel(canvas, segments) {
         ctx.stroke();
         ctx.save();
         ctx.translate(radius, radius);
-        ctx.rotate(start + slice / 2);
+        const centerAngle = start + slice / 2;
+        const shortWheel = segments.length <= 4;
+        const labelRadius = radius * .56;
+        if (shortWheel) {
+            ctx.translate(Math.cos(centerAngle) * labelRadius, Math.sin(centerAngle) * labelRadius);
+            ctx.rotate(-displayRotation * Math.PI / 180);
+        } else {
+            ctx.rotate(centerAngle);
+        }
         // Keep prize names on the wheel, including when many segments are configured.
         const dense = segments.length > 18;
         const fontSize = dense ? size * 0.024 : Math.min(size * 0.036, size * 0.46 / Math.max(segments.length, 6));
         ctx.font = '600 ' + fontSize + 'px "Noto Sans Thai", "Manrope", Tahoma, sans-serif';
-        ctx.textAlign = 'right';
+        ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         const hex = segment.color.slice(1);
         const fullHex = hex.length === 3 ? hex.split('').map(char => char + char).join('') : hex;
         const rgb = [0, 2, 4].map(offset => parseInt(fullHex.slice(offset, offset + 2), 16));
         ctx.fillStyle = rgb[0] * .299 + rgb[1] * .587 + rgb[2] * .114 > 155 ? '#2e1d11' : '#fffdf8';
         let label = segment.label;
-        const maxWidth = radius * .62;
+        const maxWidth = shortWheel
+            ? Math.min(radius * .85, segments.length === 1 ? radius * .85 : 2 * labelRadius * Math.sin(slice / 2) * .9)
+            : radius * .58;
         if (ctx.measureText(label).width > maxWidth) {
             const chars = Array.from(label);
             while (chars.length && ctx.measureText(chars.join('') + '…').width > maxWidth) chars.pop();
             label = chars.join('') + '…';
         }
-        ctx.fillText(label, radius * .9, 0);
+        ctx.fillText(label, shortWheel ? 0 : radius * .65, 0);
         ctx.restore();
     });
 }
@@ -227,14 +259,15 @@ function renderGame() {
     gameSegments = engine.buildSegments(settings, state.issued);
     rotation = gameSegments.length ? engine.rotationForSegment(0, 0, gameSegments.length, 0) : 0;
     $('game-wheel').style.transform = 'rotate(' + rotation + 'deg)';
-    drawWheel($('game-wheel'), gameSegments);
+    drawWheel($('game-wheel'), gameSegments, rotation);
     $('game-wheel').setAttribute('aria-label', gameSegments.length
         ? 'วงล้อสุ่มของรางวัล: ' + gameSegments.map(item => item.label).join(', ')
         : 'วงล้อไม่มีรางวัลให้สุ่มแล้ว');
-    const available = !storageBroken && gameSegments.some(item => item.weight > 0);
+    const available = !storageBroken && Boolean(serverStorage || navigator.locks) && gameSegments.some(item => item.weight > 0);
     $('spin-label').textContent = available ? 'กดเพื่อสุ่ม' : 'ยังไม่พร้อม';
     $('spin-button').disabled = !available;
     $('spin-status').textContent = storageBroken ? 'ไม่สามารถอ่านข้อมูลเกมได้ กรุณาติดต่อผู้ดูแล'
+        : !serverStorage && !navigator.locks ? 'การสุ่มต้องเปิดผ่าน localhost หรือ HTTPS บน Chrome/Edge'
         : available ? 'พร้อมลุ้นแล้วหรือยัง?' : 'รอบนี้ไม่มีรางวัลให้สุ่มแล้ว กรุณาติดต่อผู้ดูแล';
 }
 
@@ -257,26 +290,32 @@ async function spinWheel() {
             if (token !== spinToken || activePage !== 'page-wheel') return;
             adoptState(readState());
             storageBroken = false;
-            const segments = engine.buildSegments(settings, state.issued);
+            let segments = engine.buildSegments(settings, state.issued);
             if (!segments.some(item => item.weight > 0)) {
                 spinning = false;
                 renderGame();
                 return;
             }
-            // Verify storage before starting; the final result and stock use one atomic write.
-            writeState(state);
+            // Cloud draws choose and commit on the server before revealing the award.
+            const cloudDraw = persistentStore.mode === 'sheets' ? await persistentStore.draw('wheel') : null;
+            if (!cloudDraw) await writeState(state);
+            else {
+                adoptState(cloudDraw.value);
+                const beforeAward = { ...state.issued, [cloudDraw.prize.id]: state.issued[cloudDraw.prize.id] - 1 };
+                segments = engine.buildSegments(settings, beforeAward);
+            }
             gameSegments = segments;
-            drawWheel($('game-wheel'), segments);
-            const selectedIndex = engine.chooseWeightedSegment(segments, randomUnit);
+            drawWheel($('game-wheel'), segments, rotation);
+            const selectedIndex = cloudDraw ? segments.findIndex(item => item.id === cloudDraw.prize.id) : engine.chooseWeightedSegment(segments, randomUnit);
             const startRotation = rotation;
             const target = engine.rotationForSegment(startRotation, selectedIndex, segments.length, 6);
-            const duration = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 120 : 4600;
+            const duration = 4600;
             const started = performance.now();
             $('spin-label').textContent = 'กำลังหมุน…';
             $('spin-status').textContent = 'ลุ้นไปด้วยกัน… วงล้อกำลังเลือกของให้คุณ';
             await new Promise(resolve => {
                 releaseSpin = resolve;
-                function frame(now) {
+                async function frame(now) {
                     if (token !== spinToken) { resolve(); return; }
                     const progress = Math.min(1, (now - started) / duration);
                     const eased = 1 - Math.pow(1 - progress, 4);
@@ -288,10 +327,13 @@ async function spinWheel() {
                         animationId = null;
                         rotation = target % 360;
                         $('game-wheel').style.transform = 'rotate(' + rotation + 'deg)';
+                        drawWheel($('game-wheel'), segments, rotation);
                         const prize = segments[engine.pointerIndex(rotation, segments.length)];
                         try {
-                            const latest = readState();
-                            writeState(stateEngine.award(latest, prize.id, newId(), new Date().toISOString()));
+                            if (!cloudDraw) {
+                                const latest = readState();
+                                await writeState(stateEngine.award(latest, prize.id, newId(), new Date().toISOString()));
+                            }
                             finishSpin(prize);
                         } catch (_) {
                             spinning = false;
@@ -312,7 +354,7 @@ async function spinWheel() {
         if (token === spinToken) {
             spinning = false;
             renderGame();
-            showToast(error.message.includes('แท็บ') || error.message.includes('HTTPS')
+            showToast(window.SharedStore || error.message.includes('แท็บ') || error.message.includes('HTTPS')
                 ? error.message : 'เริ่มหมุนไม่ได้ กรุณาตรวจสอบการบันทึกข้อมูลของเบราว์เซอร์');
         }
     } finally {
@@ -437,11 +479,11 @@ function updateEditorSummary() {
     });
     if (result.valid) {
         const chances = engine.probabilities(draft, state.issued);
-        document.querySelectorAll('.editor-chance').forEach((cell, index) => { cell.textContent = formatPercent(chances[index].percent); });
+        document.querySelectorAll('#prize-editor .editor-chance').forEach((cell, index) => { cell.textContent = formatPercent(chances[index].percent); });
         drawWheel($('preview-wheel'), engine.buildSegments(draft, state.issued));
         $('preview-wheel').setAttribute('aria-label', 'ตัวอย่างวงล้อ ' + engine.buildSegments(draft, state.issued).length + ' ช่อง ตามรางวัลที่ยังเหลือ');
     } else {
-        document.querySelectorAll('.editor-chance').forEach(cell => { cell.textContent = '—'; });
+        document.querySelectorAll('#prize-editor .editor-chance').forEach(cell => { cell.textContent = '—'; });
         drawWheel($('preview-wheel'), []);
         $('preview-wheel').setAttribute('aria-label', 'กรุณากรอกข้อมูลวงล้อให้ถูกต้องเพื่อดูตัวอย่าง');
     }
@@ -476,11 +518,11 @@ async function saveSettings(event) {
     }
     $('save-settings').disabled = true;
     try {
-        await withWheelLock(() => {
+        await withWheelLock(async () => {
             const latest = readState();
             const belowIssued = candidate.items.filter(item => item.quantity < engine.issuedCount(item, latest.issued));
             if (belowIssued.length) throw new Error('จำนวนทั้งหมดต้องไม่น้อยกว่าที่จ่ายแล้ว: ' + belowIssued.map(item => item.label).join(', '));
-            writeState({ ...latest, settings: candidate });
+            await writeState({ ...latest, settings: candidate });
         });
         draft = clone(settings);
         dirty = false;
@@ -489,7 +531,7 @@ async function saveSettings(event) {
         renderLogs();
         showToast('บันทึกแล้ว จำนวนที่จ่ายไปและประวัติยังอยู่ครบ');
     } catch (error) {
-        showSettingsErrors(['บันทึกไม่ได้: ' + (error.message.includes('จำนวนทั้งหมด') || error.message.includes('แท็บ') || error.message.includes('HTTPS')
+        showSettingsErrors(['บันทึกไม่ได้: ' + (window.SharedStore || error.message.includes('จำนวนทั้งหมด') || error.message.includes('แท็บ') || error.message.includes('HTTPS')
             ? error.message : 'เบราว์เซอร์ไม่อนุญาตให้เก็บข้อมูลหรือพื้นที่เต็ม การแก้ไขยังอยู่ในหน้านี้')]);
     } finally {
         $('save-settings').disabled = false;
@@ -558,8 +600,8 @@ async function deleteSelectedLogs() {
     if (!isAdmin || !pendingDeleteIds.length) return;
     $('confirm-delete-logs').disabled = true;
     try {
-        await withWheelLock(() => {
-            writeState(stateEngine.deleteLogs(readState(), pendingDeleteIds));
+        await withWheelLock(async () => {
+            await writeState(stateEngine.deleteLogs(readState(), pendingDeleteIds));
         });
         pendingDeleteIds = [];
         $('delete-logs-dialog').close();
@@ -585,8 +627,8 @@ async function resetStock() {
     resettingStock = true;
     $('confirm-reset-stock').disabled = true;
     try {
-        await withWheelLock(() => {
-            writeState(stateEngine.resetStock(readState()));
+        await withWheelLock(async () => {
+            await writeState(stateEngine.resetStock(readState()));
         });
         draft = clone(settings);
         dirty = false;
@@ -614,7 +656,7 @@ function exportLogs() {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = 'all-jao-wheel-logs-' + new Date().toISOString().replace(/[:.]/g, '-') + '.csv';
+        link.download = 'a-place-on-earth-wheel-logs-' + new Date().toISOString().replace(/[:.]/g, '-') + '.csv';
         document.body.append(link);
         link.click();
         link.remove();
@@ -675,8 +717,7 @@ $('discard-settings').addEventListener('click', () => {
     renderEditor();
     showToast('กลับไปใช้ค่าที่บันทึกไว้แล้ว');
 });
-window.addEventListener('storage', event => {
-    if (event.key !== STORAGE_KEY && event.key !== LEGACY_KEY && event.key !== null) return;
+function refreshWheelFromStore() {
     if (spinning || $('result-dialog').open) return;
     applyPendingSettings();
     if (activePage === 'page-wheel') renderGame();
@@ -685,6 +726,12 @@ window.addEventListener('storage', event => {
         else updateEditorSummary();
         renderLogs();
     }
+}
+window.addEventListener('storage', event => {
+    if (event.key === STORAGE_KEY || event.key === LEGACY_KEY || event.key === null) refreshWheelFromStore();
+});
+document.addEventListener('jao:storechange', event => {
+    if (event.detail.game === 'wheel') refreshWheelFromStore();
 });
 $('result-dialog').addEventListener('close', () => {
     if (activePage === 'page-wheel' && !spinning) {
@@ -706,7 +753,7 @@ $('logs-next').addEventListener('click', () => { logPage += 1; renderLogs(); });
 window.addEventListener('pagehide', cancelSpin);
 if (document.fonts && document.fonts.ready) {
     document.fonts.ready.then(() => {
-        if (activePage === 'page-wheel' && !spinning) drawWheel($('game-wheel'), gameSegments);
+        if (activePage === 'page-wheel' && !spinning) drawWheel($('game-wheel'), gameSegments, rotation);
         if (activePage === 'page-admin') updateEditorSummary();
     });
 }

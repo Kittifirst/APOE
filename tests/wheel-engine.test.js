@@ -5,8 +5,9 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const ROOT = path.resolve(__dirname, '..');
 const vm = require('node:vm');
-const engine = require('./wheel-engine.js');
+const engine = require('../games/wheel/wheel-engine.js');
 
 function item(overrides = {}) {
   return Object.assign({ id: 'prize', label: 'รางวัล', quantity: 1, weight: 1, color: '#C47C54' }, overrides);
@@ -20,7 +21,7 @@ test('defaults are valid and immutable and the browser global matches CommonJS',
   assert.deepEqual(engine.validateSettings(engine.DEFAULT_SETTINGS), { valid: true, errors: [] });
   assert.ok(Object.isFrozen(engine.DEFAULT_SETTINGS.items[0]));
   const context = vm.createContext({});
-  vm.runInContext(fs.readFileSync(path.join(__dirname, 'wheel-engine.js'), 'utf8'), context);
+  vm.runInContext(fs.readFileSync(path.join(ROOT, 'games/wheel/wheel-engine.js'), 'utf8'), context);
   assert.equal(context.WheelEngine.buildSegments(context.WheelEngine.DEFAULT_SETTINGS).length, 6);
   assert.equal(context.WheelEngine.pointerIndex(45, 4), 3);
 });

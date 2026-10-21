@@ -1,7 +1,8 @@
-# Local dummy previews
-/dummy/
-/dummy.html
-
 # Local dependencies and npm cache
 node_modules/
 .npm-cache/
+
+# Private game data, generated deployment, and preserved old previews/reports
+/data/
+/dist/
+/archive/

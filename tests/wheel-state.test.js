@@ -1,8 +1,8 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const engine = require('./wheel-engine.js');
-const ledger = require('./wheel-state.js');
+const engine = require('../games/wheel/wheel-engine.js');
+const ledger = require('../games/wheel/wheel-state.js');
 const time = '2026-09-07T10:00:00.000Z';
 const config = { equalChance: true, items: [
     { id: 'a', label: 'ของขวัญ A', quantity: 2, weight: 10, color: '#aabbcc' },

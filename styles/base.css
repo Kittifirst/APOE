@@ -301,9 +301,6 @@ h2 { font-size: 17px; font-weight: 700; }
     .app-header nav { flex-wrap: wrap; }
     .wheel-stage { padding-inline: 20px; }
 }
-@media (prefers-reduced-motion:reduce) {
-    *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
-}
 /* Inventory and saved spin history */
 .prize-table { min-width: 730px; }
 .prize-table th:nth-child(3) { width: 96px; }
@@ -366,9 +363,28 @@ h2 { font-size: 17px; font-weight: 700; }
 .memory-pair-row { display: grid; gap: 10px; padding: 15px; border: 1px solid var(--line); border-radius: 10px; background: #fffefa; }
 .memory-pair-row > strong { font-size: 12px; }
 .memory-upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.memory-upload { position: relative; display: block; aspect-ratio: 1.25; overflow: hidden; border: 1px dashed #cbbba7; border-radius: 8px; background: var(--soft); cursor: pointer; }
+.memory-upload { position: relative; display: block; aspect-ratio: 1; overflow: hidden; border: 1px dashed #cbbba7; border-radius: 8px; background: var(--soft); cursor: pointer; }
 .memory-upload img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .memory-upload input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.memory-upload:focus-within { outline: 3px solid #a65c2f; outline-offset: 3px; }
+.memory-upload-caption { position: absolute; inset: auto 0 0; padding: 7px; background: #2e1d11c9; color: white; text-align: center; font-size: 11px; pointer-events: none; }
+.memory-crop-dialog { width: min(520px, calc(100% - 24px)); }
+.memory-crop-content { display: grid; gap: 16px; padding: 24px; }
+.memory-crop-content h2 { margin-top: 5px; font-size: 22px; }
+.memory-crop-content .micro-copy { line-height: 1.8; }
+.memory-crop-frame { position: relative; width: min(100%, 360px, 42dvh); aspect-ratio: 1; justify-self: center; border: 1px solid var(--line); background: var(--paper); }
+.memory-crop-frame canvas { display: block; width: 100%; height: 100%; cursor: grab; touch-action: none; }
+.memory-crop-frame canvas.is-dragging { cursor: grabbing; }
+.memory-crop-grid { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(to right, transparent calc(33.333% - .5px), #ffffff80 33.333%, transparent calc(33.333% + .5px), transparent calc(66.667% - .5px), #ffffff80 66.667%, transparent calc(66.667% + .5px)), linear-gradient(to bottom, transparent calc(33.333% - .5px), #ffffff80 33.333%, transparent calc(33.333% + .5px), transparent calc(66.667% - .5px), #ffffff80 66.667%, transparent calc(66.667% + .5px)); }
+.memory-crop-controls { display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; align-items: center; }
+.memory-crop-controls label { grid-column: 1 / -1; display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; }
+.memory-crop-controls output { color: var(--muted); }
+.memory-crop-controls input { min-width: 0; width: 100%; min-height: 36px; accent-color: var(--orange); }
+.memory-crop-both { display: flex; align-items: center; gap: 10px; min-height: 44px; font-size: 12px; cursor: pointer; }
+.memory-crop-both input { flex-shrink: 0; width: 18px; height: 18px; accent-color: var(--orange); }
+.memory-crop-actions { display: flex; gap: 10px; }
+.memory-crop-actions .button { flex: 1; }
+@media (max-width: 480px) { .memory-crop-content { padding: 18px; gap: 12px; } }
 .memory-save-bar { margin-top: 22px; }
 @media (max-width:640px) {
     .memory-status { grid-template-columns: 1fr 1fr; gap: 12px; }

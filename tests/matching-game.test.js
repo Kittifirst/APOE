@@ -3,7 +3,7 @@
 // Run with: node --test matching-game.test.js
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const memory = require('./matching-game.js');
+const memory = require('../games/memory/memory-game.js');
 
 test('default memory game starts with eight pairs and sixteen cards', () => {
     const config = memory.createDefault();

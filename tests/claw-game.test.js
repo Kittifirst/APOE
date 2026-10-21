@@ -1,9 +1,9 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const engine = require('./wheel-engine.js');
-const ledger = require('./wheel-state.js');
-const claw = require('./claw-game.js');
+const engine = require('../games/wheel/wheel-engine.js');
+const ledger = require('../games/wheel/wheel-state.js');
+const claw = require('../games/claw/claw-game.js');
 
 test('claw defaults are valid and provide weighted, stocked prizes', () => {
     assert.equal(engine.validateSettings(claw.DEFAULT_SETTINGS).valid, true);

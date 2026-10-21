@@ -15,12 +15,12 @@
   var DEFAULT_SETTINGS = Object.freeze({
     equalChance: false,
     items: Object.freeze([
-      Object.freeze({ id: 'discount-10', label: 'ส่วนลด 10%', quantity: 1, weight: 30, color: '#C47C54' }),
-      Object.freeze({ id: 'free-drink', label: 'เครื่องดื่มฟรี', quantity: 1, weight: 20, color: '#E8C587' }),
-      Object.freeze({ id: 'try-again', label: 'ลองใหม่อีกครั้ง', quantity: 1, weight: 25, color: '#788568' }),
-      Object.freeze({ id: 'discount-20', label: 'ส่วนลด 20%', quantity: 1, weight: 15, color: '#BB7045' }),
-      Object.freeze({ id: 'special-prize', label: 'ของรางวัลพิเศษ', quantity: 1, weight: 8, color: '#95604A' }),
-      Object.freeze({ id: 'jackpot', label: 'แจ็กพอต', quantity: 1, weight: 2, color: '#DAC19B' })
+      Object.freeze({ id: 'discount-10', label: 'ส่วนลด 10%', quantity: 1, weight: 30, color: '#D57B46' }),
+      Object.freeze({ id: 'free-drink', label: 'เครื่องดื่มฟรี', quantity: 1, weight: 20, color: '#F3CB8D' }),
+      Object.freeze({ id: 'try-again', label: 'ลองใหม่อีกครั้ง', quantity: 1, weight: 25, color: '#7D628F' }),
+      Object.freeze({ id: 'discount-20', label: 'ส่วนลด 20%', quantity: 1, weight: 15, color: '#B96B43' }),
+      Object.freeze({ id: 'special-prize', label: 'ของรางวัลพิเศษ', quantity: 1, weight: 8, color: '#719281' }),
+      Object.freeze({ id: 'jackpot', label: 'แจ็กพอต', quantity: 1, weight: 2, color: '#C4A5D1' })
     ])
   });
 

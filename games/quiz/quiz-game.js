@@ -23,7 +23,9 @@
             Number.isInteger(q.correct) && q.correct >= 0 && q.correct < 4;
     }
     function validateState(state) {
-        return Boolean(state && Array.isArray(state.questions) && state.questions.length >= ROUND_SIZE && state.questions.every(validQuestion) && Array.isArray(state.players));
+        return Boolean(state && Array.isArray(state.questions) && state.questions.length >= ROUND_SIZE && state.questions.every(validQuestion) &&
+            new Set(state.questions.map(function (q) { return q.id; })).size === state.questions.length && Array.isArray(state.players) &&
+            state.players.every(function (p) { return p && typeof p.id === 'string' && typeof p.name === 'string' && Number.isInteger(p.score) && p.score >= 0 && p.score <= ROUND_SIZE && Number.isFinite(p.timeMs) && p.timeMs > 0 && typeof p.completedAt === 'string'; }));
     }
     function sortPlayers(players) {
         return players.slice().sort(function (a, b) {
@@ -50,22 +52,28 @@
         options = options || {};
         var notify = options.showToast || function () {};
         var $ = function (id) { return document.getElementById(id); };
+        var persistentStore = window.SharedStore || localStorage;
         var state = load();
         var draft = clone(state.questions);
         var round = null;
         var timer = null;
+        var dirty = false;
+        var pendingPlayer = null;
 
         function load() {
             try {
-                var raw = localStorage.getItem(STORAGE_KEY);
+                var raw = persistentStore.getItem(STORAGE_KEY);
                 if (!raw) return freshState();
                 var parsed = JSON.parse(raw);
                 return validateState(parsed) ? parsed : freshState();
             } catch (_) { return freshState(); }
         }
-        function save(next) {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-            state = next;
+        async function save(next) {
+            try {
+                await persistentStore.setItem(STORAGE_KEY, JSON.stringify(next));
+                state = next;
+                return true;
+            } catch (error) { notify(window.SharedStore ? error.message : 'บันทึกไม่ได้ กรุณาตรวจสอบพื้นที่จัดเก็บของเบราว์เซอร์แล้วลองใหม่'); return false; }
         }
         function formatTime(ms) {
             var total = Math.max(0, Math.floor(ms / 1000));
@@ -95,6 +103,7 @@
             state = load();
             $('quiz-intro').hidden = false; $('quiz-play').hidden = true; $('quiz-result').hidden = true;
             $('quiz-name').value = '';
+            $('quiz-name-error').hidden = true;
             leaderboardRows($('quiz-leaderboard'), 5, false);
         }
         function start(event) {
@@ -107,6 +116,7 @@
             round = { name: name.slice(0, 50), questions: chooseQuestions(state.questions), answers: [], index: 0, startedAt: performance.now() };
             $('quiz-intro').hidden = true; $('quiz-result').hidden = true; $('quiz-play').hidden = false;
             renderQuestion();
+            updateTimer();
             clearInterval(timer); timer = setInterval(updateTimer, 100);
         }
         function updateTimer() { if (round) $('quiz-timer').textContent = formatTime(performance.now() - round.startedAt); }
@@ -124,29 +134,38 @@
                 label.append(input, marker, text); $('quiz-choices').appendChild(label);
             });
             $('quiz-confirm').disabled = true;
+            $('quiz-question').tabIndex = -1;
+            $('quiz-question').focus({ preventScroll: true });
         }
-        function confirmAnswer() {
+        async function confirmAnswer() {
             var selected = document.querySelector('input[name="quiz-answer"]:checked');
             if (!round || !selected) return;
             round.answers.push(Number(selected.value));
             if (round.index < ROUND_SIZE - 1) { round.index += 1; renderQuestion(); return; }
-            finish();
+            $('quiz-confirm').disabled = true;
+            $('quiz-choices').querySelectorAll('input').forEach(function (input) { input.disabled = true; });
+            await finish();
         }
-        function finish() {
+        async function finish() {
             var elapsed = Math.max(1, Math.round(performance.now() - round.startedAt));
             clearInterval(timer); timer = null;
             var player = { id: newId('player'), name: round.name, score: calculateScore(round.questions, round.answers), timeMs: elapsed, completedAt: new Date().toISOString() };
-            state = load(); state.players.push(player); save(state);
+            state = load(); state.players.push(player);
+            var saved = await save(state);
+            pendingPlayer = saved ? null : player;
+            $('quiz-retry-save').hidden = saved;
             $('quiz-play').hidden = true; $('quiz-result').hidden = false;
             $('quiz-result-score').textContent = player.score + ' / 5';
             $('quiz-result-time').textContent = formatTime(elapsed);
             var placement = sortPlayers(state.players).findIndex(function (item) { return item.id === player.id; }) + 1;
-            $('quiz-result-message').textContent = player.name + ' ได้อันดับที่ ' + placement + ' จากผู้เล่นทั้งหมด ' + state.players.length + ' คน';
+            $('quiz-result-message').textContent = saved ? player.name + ' ได้อันดับที่ ' + placement + ' จากผู้เล่นทั้งหมด ' + state.players.length + ' คน' : 'เล่นจบแล้ว แต่ยังบันทึกคะแนนไม่ได้ กรุณากดบันทึกผลอีกครั้ง';
             round = null;
+            $('quiz-result').tabIndex = -1; $('quiz-result').focus({ preventScroll: true });
+            document.dispatchEvent(new CustomEvent('jao:celebrate'));
         }
         function cancel() { clearInterval(timer); timer = null; round = null; }
         function renderAdmin() {
-            state = load(); draft = clone(state.questions);
+            state = load(); if (!dirty) draft = clone(state.questions);
             renderQuestionEditor(); leaderboardRows($('quiz-admin-players'), state.players.length, true);
             $('quiz-admin-count').textContent = 'ผู้เล่นทั้งหมด ' + state.players.length + ' คน';
         }
@@ -168,19 +187,19 @@
             });
             $('quiz-question-summary').textContent = draft.length + ' คำถาม · สุ่มเล่นครั้งละ 5 ข้อ';
         }
-        function markDirty() { $('quiz-save-status').textContent = 'มีการแก้ไขที่ยังไม่ได้บันทึก'; $('quiz-save-status').classList.add('unsaved'); }
-        function saveQuestions() {
+        function markDirty() { dirty = true; $('quiz-save-status').textContent = 'มีการแก้ไขที่ยังไม่ได้บันทึก'; $('quiz-save-status').classList.add('unsaved'); }
+        async function saveQuestions() {
             if (draft.length < ROUND_SIZE || !draft.every(validQuestion)) { notify('กรุณากรอกคำถาม ตัวเลือก 4 ข้อ และเลือกคำตอบที่ถูกให้ครบ'); return; }
-            state = load(); state.questions = clone(draft); save(state);
+            state = load(); state.questions = clone(draft); if (!await save(state)) return; dirty = false;
             $('quiz-save-status').textContent = 'บันทึกคำถามแล้ว'; $('quiz-save-status').classList.remove('unsaved'); notify('บันทึกคำถามเกม 04 แล้ว'); renderQuestionEditor();
         }
         function addQuestion() {
             draft.push({ id: newId('question'), text: 'คำถามใหม่', choices: ['ตัวเลือก A', 'ตัวเลือก B', 'ตัวเลือก C', 'ตัวเลือก D'], correct: 0 }); renderQuestionEditor(); markDirty();
         }
-        function resetPlayers() {
+        async function resetPlayers() {
             if (!state.players.length) return;
             if (!window.confirm('ลบอันดับและประวัติผู้เล่นทั้งหมดของเกม 04 ใช่หรือไม่?')) return;
-            state = load(); state.players = []; save(state); renderAdmin(); notify('ลบอันดับและประวัติผู้เล่นเกม 04 แล้ว');
+            state = load(); state.players = []; if (!await save(state)) return; renderAdmin(); notify('ลบอันดับและประวัติผู้เล่นเกม 04 แล้ว');
         }
         function prepareNavigation() {
             var upcoming = document.querySelector('#page-guest .game-card.upcoming');
@@ -195,6 +214,18 @@
             });
         }
         function bind() {
+            var retry = document.createElement('button'); retry.id = 'quiz-retry-save'; retry.type = 'button'; retry.className = 'button button-secondary'; retry.hidden = true; retry.textContent = 'บันทึกผลอีกครั้ง';
+            $('quiz-result').appendChild(retry);
+            retry.addEventListener('click', async function () {
+                if (!pendingPlayer) return;
+                retry.disabled = true;
+                var next = load();
+                if (!next.players.some(function (p) { return p.id === pendingPlayer.id; })) next.players.push(pendingPlayer);
+                if (!await save(next)) { retry.disabled = false; return; }
+                var placement = sortPlayers(next.players).findIndex(function (p) { return p.id === pendingPlayer.id; }) + 1;
+                $('quiz-result-message').textContent = pendingPlayer.name + ' ได้อันดับที่ ' + placement + ' จากผู้เล่นทั้งหมด ' + next.players.length + ' คน';
+                pendingPlayer = null; retry.hidden = true; retry.disabled = false; notify('บันทึกผลแล้ว');
+            });
             $('quiz-name-form').addEventListener('submit', start);
             $('quiz-choices').addEventListener('change', function () { $('quiz-confirm').disabled = false; });
             $('quiz-confirm').addEventListener('click', confirmAnswer);
@@ -216,14 +247,21 @@
                 var button = event.target.closest('[data-quiz-remove-question]'); if (!button || draft.length <= ROUND_SIZE) return;
                 draft.splice(Number(button.dataset.quizRemoveQuestion), 1); renderQuestionEditor(); markDirty();
             });
-            $('quiz-admin-players').addEventListener('click', function (event) {
+            $('quiz-admin-players').addEventListener('click', async function (event) {
                 var button = event.target.closest('[data-quiz-delete-player]'); if (!button) return;
-                state = load(); state.players = state.players.filter(function (p) { return p.id !== button.dataset.quizDeletePlayer; }); save(state); renderAdmin();
+                state = load(); state.players = state.players.filter(function (p) { return p.id !== button.dataset.quizDeletePlayer; }); if (await save(state)) renderAdmin();
             });
             window.addEventListener('storage', function (event) { if (event.key === STORAGE_KEY) state = load(); });
+            document.addEventListener('jao:storechange', function (event) {
+                if (event.detail.game !== 'quiz') return;
+                state = load();
+                if ($('page-quiz').classList.contains('active') && !$('quiz-intro').hidden) leaderboardRows($('quiz-leaderboard'), 5, false);
+                if ($('page-quiz-admin').classList.contains('active')) renderAdmin();
+            });
         }
         prepareNavigation();
         bind();
+        window.addEventListener('pagehide', cancel);
         return { render: renderIntro, renderAdmin: renderAdmin, cancel: cancel };
     }
 

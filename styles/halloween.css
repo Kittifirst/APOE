@@ -1,0 +1,151 @@
+/* Halloween café: warm paper, pumpkin orange, midnight plum, and a little magic. */
+:root {
+    color-scheme: light;
+    --cream: #fbf3e6;
+    --paper: #fffaf2;
+    --ink: #2c2034;
+    --muted: #736476;
+    --orange: #b84720;
+    --orange-dark: #943317;
+    --line: #e6d8ca;
+    --soft: #f2e8dc;
+    --sage: #655080;
+    --plum: #21182d;
+}
+body { background: var(--cream); }
+:focus-visible { outline-color: #985dd0; }
+.hero-visual-panel { background: var(--plum); padding: clamp(30px,4.4vw,70px); isolation: isolate; }
+.hero-logo { font-size: 30px; }
+.brand-dot { color: #ffb363; }
+.hero-landscape { background: radial-gradient(ellipse at 65% 35%, #4a3155 0, #2c2039 48%, #21182d 85%); }
+.hero-landscape > span { width: 190px; left: auto; right: 15%; top: 14%; background: #ffe6b0; box-shadow: 0 0 80px #f7c67a22; }
+.hero-landscape > span::after { content: ''; position: absolute; inset: -8px 22px 19px -15px; border-radius: 50%; background: #3b2947; }
+.hero-landscape::before { bottom: -48%; left: -35%; height: 75%; background: #442a48; }
+.hero-landscape::after { bottom: -53%; height: 75%; background: #5e364e; }
+.hero-quote { font-size: clamp(36px,4.5vw,66px); line-height: 1.04; font-weight: 600; letter-spacing: -1.5px; color: #fff1d9; margin-top: 320px; }
+.season-label { display: block; font: 700 11px 'Manrope', sans-serif; letter-spacing: 3px; color: #f8b77c; margin-bottom: 20px; }
+.hero-quote-caption { display: block; font: 400 14px/1.8 'Noto Sans Thai', sans-serif; color: #d0bdcf; margin-top: 22px; letter-spacing: 0; max-width: 340px; }
+.login-form-panel { padding: 60px clamp(26px,5vw,80px) 80px; background: var(--cream); border: 0; }
+.content-container { gap: 27px; }
+.welcome-heading { font-size: clamp(38px,4vw,60px); color: #35253e; line-height: 1.08; margin-top: 15px; }
+.welcome-subheading { margin-top: 7px; font-size: 15px; }
+.season-pill { align-self: flex-start; border: 1px solid #e6c7b0; background: #f6e6d5; border-radius: 30px; padding: 8px 12px; color: #914524; font-size: 9px; font-weight: 800; letter-spacing: 1.4px; }
+.credentials-form { gap: 15px; padding-top: 2px; }
+.input-container { border-radius: 12px; background: #fffbf5; }
+.continue-guest-button { background: #b84720; color: #fffaf2; border-color: #b84720; border-radius: 12px; box-shadow: 0 5px 0 #863819; }
+.continue-guest-button:hover { background: #9a3719; }
+.primary-login-button { color: #5b4864; background: transparent; border-color: #d8c8d3; box-shadow: none; border-radius: 12px; height: 47px; font-size: 13px; }
+.primary-login-button:hover { background: #ede1e8; }
+.halloween-scene { position: absolute; top: 22%; left: 12%; width: 76%; height: 280px; z-index: 0; }
+.scene-stars { position: absolute; left: 6%; top: 0; color: #edbb80; font-size: 25px; letter-spacing: 15px; transform: rotate(-12deg); }
+.scene-shelf { position: absolute; height: 10px; border-radius: 50%; background: #160e2090; bottom: 13px; left: 0; width: 100%; filter: blur(8px); }
+.cafe-ghost { position: absolute; left: 10%; top: 55px; width: 122px; height: 142px; border-radius: 60% 60% 22% 22%; background: #f9ebd7; transform: rotate(-12deg); box-shadow: inset -13px -7px #e7d3c8; }
+.cafe-ghost::before, .cafe-ghost::after { content: ''; position: absolute; top: 65px; width: 40px; height: 25px; border-radius: 50%; background: #f9ebd7; }
+.cafe-ghost::before { left: -23px; transform: rotate(30deg); }
+.cafe-ghost::after { right: -23px; transform: rotate(-30deg); }
+.cafe-ghost i { position: absolute; top: 51px; left: 35px; width: 9px; height: 15px; border-radius: 50%; background: #34223e; }
+.cafe-ghost i + i { left: 71px; }
+.cafe-ghost > span { position: absolute; width: 13px; height: 10px; border-radius: 0 0 50% 50%; top: 76px; left: 51px; background: #b75d60; }
+.cafe-pumpkin { position: absolute; left: 37%; bottom: 23px; width: 150px; height: 112px; border-radius: 45%; background: #e17b3c; box-shadow: inset 18px 0 #c7612e, inset -18px 0 #f08a46, 0 15px 30px #120c1930; transform: rotate(8deg); }
+.cafe-pumpkin::before { content: ''; position: absolute; height: 29px; width: 17px; background: #7c8b5b; border-radius: 8px 2px 0 0; left: 65px; top: -23px; transform: rotate(15deg); }
+.cafe-pumpkin i { position: absolute; width: 22px; height: 19px; top: 35px; left: 36px; background: #442534; clip-path: polygon(50% 0,100% 100%,0 100%); transform: rotate(-10deg); }
+.cafe-pumpkin i + i { left: 89px; transform: rotate(10deg); }
+.cafe-pumpkin > span { position: absolute; width: 55px; height: 22px; top: 67px; left: 48px; border-radius: 0 0 50% 50%; background: #442534; clip-path: polygon(0 0,25% 20%,38% 0,55% 25%,70% 0,85% 20%,100% 0,100% 100%,0 100%); }
+.cafe-cup { position: absolute; right: 6%; bottom: 38px; width: 70px; height: 77px; border-radius: 6px 6px 22px 22px; background: #ac96b9; transform: rotate(13deg); box-shadow: inset -10px 0 #8e779e; }
+.cafe-cup::before { content: ''; position: absolute; width: 29px; height: 34px; border: 9px solid #8e779e; border-left: 0; border-radius: 0 50% 50% 0; right: -22px; top: 13px; }
+.cafe-cup::after { content: '✦'; color: #f8e2bd; font-size: 24px; position: absolute; top: 21px; left: 24px; }
+.cafe-cup > span { position: absolute; width: 42px; height: 36px; top: -44px; left: 12px; border-left: 3px solid #deccdc70; border-right: 3px solid #deccdc70; border-radius: 50%; transform: skew(-12deg); }
+.scene-bat { color: #bda7cc; position: absolute; font-size: 65px; font-weight: 800; line-height: 1; }
+.bat-one { right: 18%; top: 5px; transform: rotate(-20deg); }
+.bat-two { left: 45%; top: 35px; transform: rotate(15deg) scale(.6); }
+.app-header { background: #21182df8; color: #f8eddf; border-bottom-color: #4c3856; }
+.app-header .brand { font-size: 25px; }
+.app-header .brand > span { color: #f6ae70 !important; }
+.app-header .nav-button { color: #d6c4d7; }
+.app-header .nav-current { color: #ffc790; }
+.app-header .user-badge { color: #e7c79f; border-color: #6b526d; }
+.page-title { color: #35253e; }
+.cafe-lobby-heading { display: flex; justify-content: space-between; gap: 30px; align-items: center; }
+.cafe-lobby-heading .page-title { font-size: clamp(29px,3.5vw,45px); letter-spacing: -1px; }
+#page-guest .eyebrow, #page-guest .card-link { color: #a34324; }
+.lobby-season { font: 700 55px 'Fraunces',serif; color: #785284; transform: rotate(8deg); text-align: center; padding: 10px 20px; }
+.lobby-season small { display: block; font: 600 9px 'Manrope',sans-serif; letter-spacing: 1px; margin-top: 5px; white-space: nowrap; }
+.game-card { border-radius: 18px; border-color: #e0cebd; box-shadow: 0 4px 0 #eaddcd; }
+#page-guest .featured-game:hover { border-color: #b7836c; box-shadow: 0 10px 28px #39234012; }
+.game-card-content { padding: 28px 25px; }
+.game-card-content h2 { font-size: 23px; color: #38293e; }
+.game-card-content p { font-size: 14px; }
+.game-art { background: #f0c8a3; }
+.game-art::after { content: '✧'; position: absolute; bottom: 13px; right: 14px; font: 700 40px 'Fraunces',serif; color: #8b4a3540; pointer-events: none; }
+.mini-wheel { background: conic-gradient(#714d86 0 45deg,#f6bb76 45deg 90deg,#c76a3d 90deg 135deg,#f8ddaa 135deg 180deg,#789484 180deg 225deg,#d18953 225deg 270deg,#846594 270deg 315deg,#f7c792 315deg); border-color: #fff3da; box-shadow: 0 0 0 2px #9b5c3e, 0 10px 20px #6e431822; }
+.mini-wheel > span { color: #5c3b70; border-color: #e5c7a1; }
+.available-tag { background: #fff8eb; color: #473651; }
+.available-tag > span { background: #6b805c; }
+.memory-art { background: #ded1e8; }
+.memory-art-grid span { background: #745386; border-color: #efe2f6; }
+.memory-art-grid span:nth-child(2), .memory-art-grid span:nth-child(3) { background: #a681ad; }
+.claw-art { background: #d5e0cf; }
+.quiz-art { background: #f2dca5; }
+.art-star { color: #895143; }
+.mini-quiz > span { background: #674778; color: #fff5e7; border-color: #9c7b9e; }
+.mini-quiz i { background: #fff7e8; color: #6d476e; }
+.lobby-note { color: #7c667a; border-top: 1px dashed #dac8ce; padding-top: 22px; }
+.app-footer { padding-bottom: 62px; }
+.app-footer span:last-child { color: #786377; }
+.game-tab.selected, .tab-indicator { background: #6b4a7f; }
+.game-tabs { background: #eee3e9; border-color: #ddcddc; }
+.button-primary { background: #b84720; border-color: #b84720; color: #fffaf2; }
+.button-primary:hover { background: #943317; }
+.button-secondary { background: #f4e9de; }
+.panel { background: var(--paper); border-color: #e2d3c7; }
+.wheel-stage { background: radial-gradient(ellipse,#f5dfbd 0, #f5eadd 65%); }
+.wheel-hub { background: #35253e; color: #fff0d7; border-color: #ad839c; }
+.wheel-hub small { color: #ffc791; }
+.pumpkin-mark { display: block; width: 30px; height: 30px; flex-shrink: 0; }
+.wheel-hub .pumpkin-mark { width: clamp(25px, 4vw, 44px); height: auto; aspect-ratio: 1; }
+.preview-wheel-frame .pumpkin-mark { width: 28px; }
+.claw-marquee > span:first-child { letter-spacing: .4px; line-height: 1.5; }
+.memory-card-back { background: #684a7b; color: #fff0d3; }
+.result-dialog { background: #fff7e9; border-color: #b98fbd; }
+.result-sparkles { color: #a66e37; }
+.connection-status { position: fixed; bottom: 12px; right: 16px; z-index: 20; max-width: calc(100vw - 32px); border: 1px solid #d9c9dc; background: #fff9f0f5; color: #6c5478; padding: 9px 13px; border-radius: 30px; box-shadow: 0 3px 14px #21182d0d; font-size: 11px; text-align: left; }
+.connection-status::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #a17d54; margin-right: 7px; }
+.connection-status[data-state="online"]::before { background: #467347; }
+.connection-status[data-state="offline"] { color: #9a351c; border-color: #db9e87; }
+.connection-status[data-state="offline"]::before { background: #c24728; }
+.connection-status[data-state="loading"]::before { background: #8964a2; }
+.toast { bottom: 62px; }
+@media (max-width: 1000px) {
+    .hero-quote { font-size: 43px; }
+    .halloween-scene { left: 6%; width: 88%; transform: scale(.85); }
+    .game-card-content { padding: 23px 18px; }
+    .game-card-content h2 { font-size: 20px; }
+}
+@media (max-width: 700px) {
+    .hero-visual-panel { min-height: 405px; padding: 28px; }
+    .hero-logo { font-size: 24px; }
+    .hero-landscape > span { width: 110px; right: 10%; top: 13%; }
+    .hero-quote { margin-top: 180px; max-width: 290px; font-size: 39px; }
+    .hero-quote-caption { display: none; }
+    .season-label { font-size: 9px; margin-bottom: 10px; }
+    .halloween-scene { top: 55px; left: 34%; width: 62%; transform: scale(.63); transform-origin: center; height: 275px; }
+    .scene-stars { left: -40%; font-size: 20px; }
+    .cafe-ghost { left: -20%; top: 35px; }
+    .cafe-pumpkin { left: 27%; }
+    .cafe-cup { right: -10%; }
+    .login-form-panel { padding: 37px 25px 68px; }
+    .welcome-heading { font-size: 44px; }
+    .season-pill { font-size: 8px; }
+    .cafe-lobby-heading { gap: 12px; }
+    .lobby-season { display: none; }
+    .cafe-lobby-heading .eyebrow { font-size: 9px; letter-spacing: 1.5px; }
+    .cafe-lobby-heading .page-title { font-size: 29px; }
+    .app-header .brand { font-size: 22px; }
+    .game-card-content { padding: 22px; }
+    .game-card-content h2 { font-size: 23px; }
+    .connection-status { bottom: 9px; right: 10px; font-size: 10px; padding: 8px 11px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+    .cafe-ghost { animation: ghost-float 5s ease-in-out infinite; }
+    @keyframes ghost-float { 50% { transform: translateY(-12px) rotate(-7deg); } }
+}

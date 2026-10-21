@@ -1,6 +1,6 @@
 (function (root, factory) {
     'use strict';
-    if (typeof module === 'object' && module.exports) module.exports = factory(require('./wheel-engine.js'), require('./wheel-state.js'));
+    if (typeof module === 'object' && module.exports) module.exports = factory(require('../wheel/wheel-engine.js'), require('../wheel/wheel-state.js'));
     else root.ClawGame = factory(root.WheelEngine, root.WheelState);
 })(typeof globalThis !== 'undefined' ? globalThis : this, function (engine, ledger) {
     'use strict';
@@ -11,7 +11,7 @@
     var DEFAULT_SETTINGS = {
         equalChance: false,
         items: [
-            { id: 'claw-sticker', label: 'สติกเกอร์ All Jao', quantity: 20, weight: 35, color: '#e6ad62' },
+            { id: 'claw-sticker', label: 'สติกเกอร์ A Place on earth', quantity: 20, weight: 35, color: '#e6ad62' },
             { id: 'claw-keychain', label: 'พวงกุญแจ', quantity: 10, weight: 25, color: '#7898a4' },
             { id: 'claw-coupon', label: 'คูปองส่วนลด 10%', quantity: 8, weight: 20, color: '#b66c51' },
             { id: 'claw-tote', label: 'กระเป๋าผ้า', quantity: 4, weight: 12, color: '#7d8d70' },
@@ -32,6 +32,9 @@
         options = options || {};
         var toast = options.showToast || function () {};
         var $ = function (id) { return document.getElementById(id); };
+        var persistentStore = window.SharedStore || localStorage;
+        var serverStorage = Boolean(window.SharedStore && window.SharedStore.mode !== 'demo');
+        var storageBroken = false;
         var state = load();
         var draft = clone(state.settings);
         var dirty = false;
@@ -46,18 +49,20 @@
 
         function load() {
             try {
-                var raw = localStorage.getItem(STORAGE_KEY);
-                if (!raw) return ledger.create(DEFAULT_SETTINGS);
+                var raw = persistentStore.getItem(STORAGE_KEY);
+                if (!raw) { storageBroken = false; return ledger.create(DEFAULT_SETTINGS); }
                 var parsed = JSON.parse(raw);
                 if (!ledger.validate(parsed)) throw new Error('invalid state');
-                return parsed;
+                storageBroken = false; return parsed;
             } catch (_) {
+                storageBroken = true;
                 return ledger.create(DEFAULT_SETTINGS);
             }
         }
-        function save(next) {
+        async function save(next) {
+            if (storageBroken) throw new Error('อ่านสต็อกตู้คีบไม่ได้ กรุณาตรวจสอบข้อมูลที่บันทึกไว้');
             if (!ledger.validate(next)) throw new Error('ข้อมูลเกมตู้คีบไม่ถูกต้อง');
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+            await persistentStore.setItem(STORAGE_KEY, JSON.stringify(next));
             state = next;
         }
         function latest() {
@@ -272,12 +277,14 @@
             gravityFrame = requestAnimationFrame(frame);
         }
         function syncGameControls(setReadyMessage) {
-            var available = engine.buildSegments(state.settings, state.issued).some(function (item) { return item.weight > 0; });
+            var available = !storageBroken && Boolean(serverStorage || navigator.locks) && engine.buildSegments(state.settings, state.issued).some(function (item) { return item.weight > 0; });
             playable = available;
             setControls(busy || !available);
             updatePosition();
             updateStockCount();
-            if (!available) $('claw-status').textContent = 'ของรางวัลหมดแล้ว กรุณาติดต่อผู้ดูแล';
+            if (storageBroken) $('claw-status').textContent = 'อ่านสต็อกตู้คีบไม่ได้ กรุณาตรวจสอบข้อมูลที่บันทึกไว้';
+            else if (!serverStorage && !navigator.locks) $('claw-status').textContent = 'การคีบต้องเปิดผ่าน localhost หรือ HTTPS บน Chrome/Edge';
+            else if (!available) $('claw-status').textContent = 'ของรางวัลหมดแล้ว กรุณาติดต่อผู้ดูแล';
             else if (setReadyMessage) $('claw-status').textContent = 'เลือกตำแหน่ง แล้วกดคีบได้เลย';
         }
         function render() {
@@ -287,6 +294,7 @@
             syncGameControls(true);
         }
         async function withLock(action) {
+            if (serverStorage) return action();
             if (!navigator.locks) throw new Error('กรุณาเปิดเกมด้วย Chrome หรือ Edge ผ่าน localhost หรือ HTTPS');
             return navigator.locks.request(LOCK_KEY, { ifAvailable: true }, function (lock) {
                 if (!lock) throw new Error('ตู้คีบกำลังทำงานในอีกแท็บ กรุณาลองอีกครั้ง');
@@ -301,12 +309,18 @@
             $('claw-carriage').classList.add('is-dropping');
             try {
                 await wait(850);
-                var result = await withLock(function () {
+                var result = await withLock(async function () {
+                    if (persistentStore.mode === 'sheets') {
+                        var drawn = await persistentStore.draw('claw');
+                        state = drawn.value;
+                        return { prize: drawn.prize, next: drawn.value };
+                    }
                     var current = load();
+                    if (storageBroken) throw new Error('อ่านสต็อกตู้คีบไม่ได้ กรุณาตรวจสอบข้อมูลที่บันทึกไว้');
                     var segments = engine.buildSegments(current.settings, current.issued);
                     var chosen = segments[engine.chooseWeightedSegment(segments, Math.random)];
                     var next = ledger.award(current, chosen.id, newId('claw'), new Date().toISOString());
-                    save(next);
+                    await save(next);
                     return { prize: chosen, next: next };
                 });
                 var capsuleColor = pickVisibleCapsule();
@@ -423,7 +437,7 @@
             item[input.dataset.field] = input.type === 'number' ? input.valueAsNumber : input.value;
             updateAdminSummary();
         }
-        function saveSettings(event) {
+        async function saveSettings(event) {
             event.preventDefault();
             var validation = engine.validateSettings(draft);
             var belowIssued = draft.items.filter(function (item) { return Number.isInteger(item.quantity) && item.quantity < engine.issuedCount(item, state.issued); });
@@ -432,12 +446,12 @@
             if (errors.length) { showErrors(errors); return; }
             try {
                 var current = latest();
-                save({ version: current.version, settings: clone(draft), issued: current.issued, logs: current.logs });
+                await save({ version: current.version, settings: clone(draft), issued: current.issued, logs: current.logs });
                 dirty = false;
                 showErrors([]);
                 renderAdmin();
                 toast('บันทึกเกมตู้คีบแล้ว สต็อกและประวัติยังอยู่ครบ');
-            } catch (_) { showErrors(['บันทึกไม่ได้ กรุณาตรวจสอบการเก็บข้อมูลของเบราว์เซอร์']); }
+            } catch (error) { showErrors([window.SharedStore ? error.message : 'บันทึกไม่ได้ กรุณาตรวจสอบการเก็บข้อมูลของเบราว์เซอร์']); }
         }
         function renderLogs() {
             state = latest();
@@ -461,19 +475,19 @@
             $('claw-export-logs').disabled = !logs.length;
             $('claw-clear-logs').disabled = !logs.length;
         }
-        function deleteLogs(ids) {
+        async function deleteLogs(ids) {
             if (!ids.length || !window.confirm('ยืนยันลบประวัติ ' + ids.length + ' รายการ? การลบจะไม่คืนสต็อก')) return;
-            var current = latest();
-            save(ledger.deleteLogs(current, ids));
-            renderAdmin();
-            toast('ลบประวัติแล้ว สต็อกและยอดจ่ายไม่เปลี่ยน');
+            try {
+                var current = latest(); await save(ledger.deleteLogs(current, ids)); renderAdmin();
+                toast('ลบประวัติแล้ว สต็อกและยอดจ่ายไม่เปลี่ยน');
+            } catch (_) { toast('ลบประวัติไม่ได้ กรุณาตรวจสอบการบันทึกข้อมูลแล้วลองใหม่'); }
         }
-        function resetStock() {
+        async function resetStock() {
             if (!window.confirm('เริ่มสต็อกใหม่? จำนวนที่จ่ายแล้วจะกลับมาเป็นของเหลือ แต่ประวัติยังอยู่ครบ')) return;
-            save(ledger.resetStock(latest()));
-            dirty = false;
-            renderAdmin();
-            toast('เริ่มสต็อกเกมตู้คีบใหม่แล้ว');
+            try {
+                await save(ledger.resetStock(latest())); dirty = false; renderAdmin();
+                toast('เริ่มสต็อกเกมตู้คีบใหม่แล้ว');
+            } catch (_) { toast('เริ่มสต็อกใหม่ไม่ได้ กรุณาตรวจสอบการบันทึกข้อมูลแล้วลองใหม่'); }
         }
         function exportLogs() {
             var logs = latest().logs;
@@ -482,7 +496,7 @@
             var url = URL.createObjectURL(blob);
             var link = document.createElement('a');
             link.href = url;
-            link.download = 'all-jao-claw-logs-' + new Date().toISOString().replace(/[:.]/g, '-') + '.csv';
+            link.download = 'a-place-on-earth-claw-logs-' + new Date().toISOString().replace(/[:.]/g, '-') + '.csv';
             document.body.appendChild(link); link.click(); link.remove();
             setTimeout(function () { URL.revokeObjectURL(url); }, 10000);
             toast('ส่งออกประวัติ ' + logs.length + ' รายการแล้ว');
@@ -494,11 +508,15 @@
             button.addEventListener('pointerup', stopMoving);
             button.addEventListener('pointercancel', stopMoving);
             button.addEventListener('lostpointercapture', stopMoving);
+            button.addEventListener('click', function (event) { if (event.detail === 0) move(control[1] * .15); });
         });
         window.addEventListener('blur', stopMoving);
         $('claw-drop').addEventListener('click', drop);
         document.addEventListener('keydown', function (event) {
             if (!$('page-claw').classList.contains('active') || $('claw-result-dialog').open) return;
+            if (event.target.closest('input, textarea, select, [contenteditable], .game-tabs, .app-header')) return;
+            if (event.target.closest('button') && !event.target.closest('#claw-left, #claw-right, #claw-drop')) return;
+            if (event.code === 'Space' && event.target.closest('button')) return;
             if (event.key === 'ArrowLeft') { event.preventDefault(); move(-.15); }
             if (event.key === 'ArrowRight') { event.preventDefault(); move(.15); }
             if (event.code === 'Space') { event.preventDefault(); drop(); }
@@ -527,11 +545,20 @@
         $('claw-export-logs').addEventListener('click', exportLogs);
         $('claw-logs-prev').addEventListener('click', function () { if (logPage > 0) { logPage -= 1; renderLogs(); } });
         $('claw-logs-next').addEventListener('click', function () { logPage += 1; renderLogs(); });
-        window.addEventListener('storage', function (event) { if (event.key === STORAGE_KEY && !busy) { state = load(); if (!dirty) draft = clone(state.settings); if ($('page-claw').classList.contains('active')) render(); if ($('page-claw-admin').classList.contains('active')) renderAdmin(); } });
+        function refreshFromStore() {
+            if (busy) return;
+            state = load();
+            if (!dirty) draft = clone(state.settings);
+            if ($('page-claw').classList.contains('active')) render();
+            if ($('page-claw-admin').classList.contains('active')) renderAdmin();
+        }
+        window.addEventListener('storage', function (event) { if (event.key === STORAGE_KEY) refreshFromStore(); });
+        document.addEventListener('jao:storechange', function (event) { if (event.detail.game === 'claw') refreshFromStore(); });
 
         renderCapsules();
         updatePosition();
-        return { render: render, renderAdmin: renderAdmin, cancel: cancel };
+        $('claw-result-dialog').addEventListener('cancel', function (event) { if (busy) event.preventDefault(); });
+        return { render: render, renderAdmin: renderAdmin, cancel: cancel, isBusy: function () { return busy; } };
     }
 
     return Object.freeze({ init: init, DEFAULT_SETTINGS: clone(DEFAULT_SETTINGS), STORAGE_KEY: STORAGE_KEY });

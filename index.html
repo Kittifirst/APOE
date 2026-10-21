@@ -2,20 +2,36 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#FAF6EE">
-    <title>All Jao Games</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#21182d">
+    <meta name="description" content="A Place on earth · Halloween Café — จิบกาแฟ เล่นเกม และลุ้นของขวัญในคืนฮาโลวีน">
+    <title>A Place on earth · Halloween Café</title>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-    <script src="wheel-engine.js" defer></script>
-    <script src="wheel-state.js" defer></script>
-    <script src="matching-game.js" defer></script>
-    <script src="claw-game.js" defer></script>
-    <script src="quiz-game.js" defer></script>
-    <script src="script.js" defer></script>
+    <link rel="stylesheet" href="styles/base.css">
+    <link rel="stylesheet" href="styles/motion.css">
+    <link rel="stylesheet" href="styles/halloween.css">
+    <link rel="stylesheet" href="games/wheel/wheel.css">
+    <script src="app/app-config.js" defer></script>
+    <script src="app/storage/shared-store.js" defer></script>
+    <script src="app/storage/google-sheets-store.js" defer></script>
+    <script src="games/wheel/wheel-engine.js" defer></script>
+    <script src="games/wheel/wheel-state.js" defer></script>
+    <script src="games/memory/memory-game.js" defer></script>
+    <script src="games/claw/claw-game.js" defer></script>
+    <script src="games/quiz/quiz-game.js" defer></script>
+    <script src="app/bootstrap.js" defer></script>
+    <script src="app/motion.js" defer></script>
+    <script src="games/wheel/wheel-effects.js" defer></script>
 </head>
-<body>
+<body class="halloween-cafe">
+    <button id="connection-status" class="connection-status" type="button" aria-live="polite">กำลังเตรียมคาเฟ่…</button>
     <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <symbol id="i-halloween-bat" viewBox="0 0 100 50"><path d="m50 17-7-12-2 14C26 3 12 5 2 15c13 2 13 12 14 18 9-7 17-1 19 7 7-3 10 0 15 8 5-8 8-11 15-8 2-8 10-14 19-7 1-6 1-16 14-18C88 5 74 3 59 19L57 5z" fill="currentColor"/><circle cx="46" cy="25" r="1.5" fill="#ffc984"/><circle cx="54" cy="25" r="1.5" fill="#ffc984"/></symbol>
+        <symbol id="i-halloween-ghost" viewBox="0 0 64 72"><path d="M10 66V29a22 22 0 0 1 44 0v37l-8-6-7 6-7-6-7 6-7-6z" fill="#f6e8db"/><ellipse cx="25" cy="30" rx="3" ry="5" fill="#35203f"/><ellipse cx="40" cy="30" rx="3" ry="5" fill="#35203f"/><ellipse cx="32" cy="43" rx="4" ry="5" fill="#a26378"/><circle cx="18" cy="39" r="4" fill="#e9b0aa"/><circle cx="47" cy="39" r="4" fill="#e9b0aa"/></symbol>
+        <symbol id="i-halloween-candy" viewBox="0 0 64 48"><path d="m16 16-13-8 3 16-3 16 13-8m32-16 13-8-3 16 3 16-13-8" fill="#b492dd"/><rect x="13" y="10" width="38" height="28" rx="13" fill="#ffe3ae"/><path d="m23 12 9 24m4-24 8 22" stroke="#e68949" stroke-width="7"/></symbol>
+        <symbol id="i-halloween-web" viewBox="0 0 160 160"><g fill="none" stroke="currentColor" stroke-width="1"><path d="M0 0h160M0 0v160M0 0l160 160M0 0l160 66M0 0l66 160M0 35q16 0 13-22 17 12 22-13M0 69q32 0 26-43 33 24 43-26M0 105q48 0 40-65 50 36 65-40M0 145q66 0 56-89 68 50 89-56"/></g></symbol>
+        <symbol id="i-haunted-landscape" viewBox="0 0 900 230"><path d="M0 172q110-37 210 6t230-4 240 3 220-18v71H0z" fill="#100d1a"/><path d="m40 193 8-111-30-29 28 15-8-52 20 53 36-21-33 38 5 105m68-3 5-74-25-27 25 13-6-43 17 41 28-20-26 36 3 75m677 10-5-135 32-40-30 20 8-62-22 56-34-20 29 38-9 143m-82-6 1-79 29-31-27 14 7-39-18 39-25-17 22 33-6 82" fill="#100d1a"/><path d="M616 192v-85l-13 3 35-44 36 39-13-1v88m17 0v-61l-9-2 29-32 33 31-12 1v63m-94-87V70l-9 2 20-35 19 34-8-1v41m12 81V95l-9 1 25-37 28 34-9 1v98" fill="#140e1c"/><g fill="#e79a4a"><path d="M629 124h10v16h-10zm15 0h10v16h-10zm-7 32h12v29h-12zm45-42h7v12h-7zm14 37h10v16h-10zm-58-76h7v13h-7z"/></g><path d="M0 210q200-18 450 0t450-9v29H0z" fill="#0d0a14"/></symbol>
+        <symbol id="i-pumpkin" viewBox="0 0 64 64"><path d="M29 17c-1-8 3-12 10-13l2 6c-5 0-7 3-6 8" fill="#81945c"/><ellipse cx="22" cy="37" rx="16" ry="20" fill="#d56a2c"/><ellipse cx="42" cy="37" rx="16" ry="20" fill="#e98035"/><ellipse cx="32" cy="37" rx="16" ry="22" fill="#f59a43"/><path d="m21 29 8 10H17zm22 0 4 10H35zM19 44l7 3 6-3 6 3 7-3c-2 12-24 12-26 0" fill="#39213e"/><path d="M21 24c-4 4-6 9-6 15" fill="none" stroke="#ffc879" stroke-width="3" stroke-linecap="round"/></symbol>
         <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></symbol>
         <symbol id="i-wheel" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="M12 3v7m0 4v7M3 12h7m4 0h7M5.6 5.6l5 5m2.8 2.8 5 5m0-12.8-5 5m-2.8 2.8-5 5"/></symbol>
         <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 7h16M4 17h16M8 4v6m8 4v6"/></symbol>
@@ -29,28 +45,29 @@
     </svg>
     <div id="page-login" class="page active">
         <div class="hero-visual-panel">
-            <div class="hero-logo"><span>All Jao Games<span class="brand-dot">.</span></span></div>
+            <div class="hero-logo"><span>A Place on earth<span class="brand-dot">.</span></span></div>
             <div class="hero-landscape" aria-hidden="true"><span></span></div>
-            <div class="hero-quote">“A world of timeless games, brought beautifully to your event.”</div>
+            <div class="halloween-scene" aria-hidden="true"><span class="scene-stars">✦ &nbsp; · &nbsp; ✧</span><span class="scene-bat bat-one">⌁</span><span class="scene-bat bat-two">⌁</span><div class="cafe-ghost"><i></i><i></i><span></span></div><div class="cafe-pumpkin"><i></i><i></i><span></span></div><div class="cafe-cup"><span></span></div><div class="scene-shelf"></div></div>
+            <div class="hero-quote"><span class="season-label">THE HALLOWEEN CAFÉ</span>A little coffee.<br>A little magic.<span class="hero-quote-caption">จิบความอร่อย แล้วปล่อยให้ความสนุกเสกช่วงเวลาดี ๆ</span></div>
         </div>
         <div class="login-form-panel">
             <form id="login-form" class="content-container">
-                <div class="header-text"><h1 class="welcome-heading">Welcome To All Jao Games</h1><p class="welcome-subheading">We've kept a spot warm for you. Log in below to get settled.</p></div>
+                <div class="header-text"><span class="season-pill">✦ TRICK, TREAT & A LITTLE PLAY</span><h1 class="welcome-heading">Good brews.<br>Spooky moods.</h1><p class="welcome-subheading">ยินดีต้อนรับสู่คาเฟ่ฮาโลวีนของเรา เลือกเกมที่ชอบ ลุ้นของขวัญ แล้วเติมความสนุกให้แก้วโปรดของคุณ</p></div>
                 <div class="credentials-form">
-                    <div class="field-group"><label class="field-label" for="username">Username</label><div class="input-container"><input type="text" id="username" placeholder="xxxxxxx" autocomplete="username"></div></div>
+                    <div class="field-group"><label class="field-label" for="username">ชื่อผู้ดูแลร้าน</label><div class="input-container"><input type="text" id="username" placeholder="Username" autocomplete="username"></div></div>
                     <div class="field-group"><label class="field-label" for="password">Password</label><div class="input-container"><input type="password" id="password" placeholder="••••••••••••" autocomplete="current-password"></div></div>
                 </div>
-                <div class="actions-group"><button type="submit" class="primary-login-button">Sign In</button><button type="button" class="continue-guest-button" data-page="page-guest">Continue as Guest</button></div>
+                <div class="actions-group"><button type="button" class="continue-guest-button" data-page="page-guest">เข้าคาเฟ่ แล้วเริ่มเล่น →</button><button type="submit" class="primary-login-button">เข้าสู่ระบบผู้ดูแลร้าน</button></div>
             </form>
         </div>
     </div>
     <section id="page-guest" class="page app-page" aria-labelledby="games-title">
-        <header class="app-header"><a class="brand" href="#" data-page="page-guest">All Jao Games<span>.</span></a><nav aria-label="เมนูหลัก"><span class="nav-current">เกมทั้งหมด</span><button class="nav-button admin-only" data-page="page-admin" hidden>ตั้งค่าเกม</button><button class="nav-button" data-action="logout">กลับหน้าหลัก <svg class="icon"><use href="#i-arrow"/></svg></button></nav></header>
+        <header class="app-header"><a class="brand" href="#" data-page="page-guest">A Place on earth<span>.</span></a><nav aria-label="เมนูหลัก"><span class="nav-current">เกมทั้งหมด</span><button class="nav-button admin-only" data-page="page-admin" hidden>ตั้งค่าเกม</button><button class="nav-button" data-action="logout">กลับหน้าหลัก <svg class="icon"><use href="#i-arrow"/></svg></button></nav></header>
         <main class="page-content lobby-content">
-            <div class="eyebrow">A LITTLE PLAY, A LOT OF JOY</div><h1 id="games-title" class="page-title">ให้ทุกจังหวะ มีความสนุก</h1><p class="page-subtitle">เลือกเกมที่ชอบ แล้วสร้างช่วงเวลาดี ๆ ไปด้วยกัน</p>
+            <div class="cafe-lobby-heading"><div><div class="eyebrow">PICK YOUR LITTLE HALLOWEEN ADVENTURE</div><h1 id="games-title" class="page-title">พักจิบกาแฟ แวะเล่นกับผี</h1><p class="page-subtitle">สี่เกมเล็ก ๆ กับความสนุกแก้วใหญ่ เลือกเกมโปรดแล้วไปลุ้นกันเลย</p></div><span class="lobby-season" aria-hidden="true">BOO!<small>made with a little magic</small></span></div>
             <div class="game-grid">
                 <button class="game-card featured-game" data-page="page-wheel">
-                    <div class="game-art"><div class="mini-wheel"><span>Jao<span>✦</span></span></div><span class="art-star star-one">✦</span><span class="art-star star-two">✧</span><span class="available-tag"><span></span> พร้อมเล่น</span></div>
+                    <div class="game-art"><div class="mini-wheel"><span><svg class="pumpkin-mark" viewBox="0 0 64 64" aria-hidden="true"><use href="#i-pumpkin"/></svg></span></div><span class="art-star star-one">✦</span><span class="art-star star-two">✧</span><span class="available-tag"><span></span> พร้อมเล่น</span></div>
                     <div class="game-card-content"><span class="eyebrow">GAME 01</span><h2>วงล้อสุ่ม</h2><p>หมุนวงล้อ ลุ้นของขวัญ แล้วให้โชคเลือกให้คุณ</p><span class="card-link">เริ่มเล่น <svg class="icon"><use href="#i-arrow"/></svg></span></div>
                 </button>
                 <button class="game-card featured-game" data-page="page-memory">
@@ -59,16 +76,16 @@
                 </button>
                 <button class="game-card featured-game" data-page="page-claw">
                     <div class="game-art claw-art"><div class="mini-claw"><span class="mini-claw-arm"></span><span class="mini-claw-capsule"></span></div><span class="available-tag"><span></span> พร้อมเล่น</span></div>
-                    <div class="game-card-content"><span class="eyebrow">GAME 03</span><h2>ตู้คีบแคปซูล</h2><p>ขยับคีบให้ตรง ลุ้นแคปซูล แล้วเปิดดูของขวัญ</p><span class="card-link">เริ่มเล่น <svg class="icon"><use href="#i-arrow"/></svg></span></div>
+                    <div class="game-card-content"><span class="eyebrow">GAME 03</span><h2>ตู้คีบลูกบอล</h2><p>ขยับคีบให้ตรง ลุ้นแคปซูล แล้วเปิดดูของขวัญ</p><span class="card-link">เริ่มเล่น <svg class="icon"><use href="#i-arrow"/></svg></span></div>
                 </button>
                 <div class="game-card upcoming"><div class="upcoming-art"><svg class="icon"><use href="#i-lock"/></svg><span>04</span></div><div class="game-card-content"><span class="eyebrow">GAME 04</span><h2>ความสนุกครั้งต่อไป</h2><p>อีกหนึ่งเกมที่รอให้คุณมาค้นพบ</p><span class="coming-soon">เร็ว ๆ นี้</span></div></div>
             </div>
-            <div class="lobby-note"><svg class="icon"><use href="#i-spark"/></svg> ช่วงเวลาที่ดี เริ่มต้นด้วยการเล่นด้วยกัน</div>
+            <div class="lobby-note"><svg class="icon"><use href="#i-spark"/></svg> กาแฟอุ่น ๆ ของขวัญน่ารัก และความทรงจำในคืนฮาโลวีน</div>
         </main>
-        <footer class="app-footer"><span>All Jao Games</span><span>Made for moments together.</span></footer>
+        <footer class="app-footer"><span>A Place on earth</span><span>Made for moments together.</span></footer>
     </section>
     <section id="page-quiz" class="page app-page" aria-labelledby="quiz-title">
-        <header class="app-header"><a class="brand" href="#" data-page="page-guest">All Jao Games<span>.</span></a><nav aria-label="เมนูเกมตอบคำถาม"><button class="nav-button nav-current" data-page="page-guest">เกมทั้งหมด</button><button class="nav-button admin-only" data-page="page-quiz-admin" hidden>ตั้งค่าเกม</button><span class="user-badge">LET’S PLAY</span></nav></header>
+        <header class="app-header"><a class="brand" href="#" data-page="page-guest">A Place on earth<span>.</span></a><nav aria-label="เมนูเกมตอบคำถาม"><button class="nav-button nav-current" data-page="page-guest">เกมทั้งหมด</button><button class="nav-button admin-only" data-page="page-quiz-admin" hidden>ตั้งค่าเกม</button><span class="user-badge">LET’S PLAY</span></nav></header>
         <main class="page-content quiz-content">
             <div class="title-row"><div><div class="eyebrow">GAME 04 · HOW WELL DO YOU KNOW ME?</div><h1 id="quiz-title" class="page-title">รู้ใจฉันแค่ไหน?</h1><p class="page-subtitle">ตอบให้ถูกทั้ง 5 ข้อ และทำเวลาให้เร็วที่สุด</p></div></div>
             <section id="quiz-intro" class="quiz-intro-layout">
@@ -78,14 +95,14 @@
             <section id="quiz-play" class="panel quiz-play-panel" hidden aria-live="polite"><div class="quiz-play-top"><div><span id="quiz-progress-text" class="eyebrow">ข้อ 1 / 5</span><div class="quiz-progress-track"><span id="quiz-progress-bar"></span></div></div><div class="quiz-clock"><span>เวลา</span><strong id="quiz-timer">00:00.0</strong></div></div><h2 id="quiz-question" class="quiz-question"></h2><div id="quiz-choices" class="quiz-choices"></div><button id="quiz-confirm" class="button button-primary quiz-confirm" type="button" disabled>ยืนยันคำตอบ <svg class="icon"><use href="#i-arrow"/></svg></button></section>
             <section id="quiz-result" class="panel quiz-result" hidden><div class="eyebrow">FINISH!</div><h2>ตอบครบแล้ว เยี่ยมมาก!</h2><div class="quiz-result-stats"><div><span>คะแนน</span><strong id="quiz-result-score">0 / 5</strong></div><div><span>เวลาที่ใช้</span><strong id="quiz-result-time">00:00.0</strong></div></div><p id="quiz-result-message"></p><button id="quiz-play-again" class="button button-primary" type="button">ส่งต่อให้คนถัดไป <svg class="icon"><use href="#i-arrow"/></svg></button></section>
         </main>
-        <footer class="app-footer"><span>All Jao Games</span><span>Five questions. One fastest heart.</span></footer>
+        <footer class="app-footer"><span>A Place on earth</span><span>Five questions. One fastest heart.</span></footer>
     </section>
     <section id="page-claw" class="page app-page" aria-labelledby="claw-title">
-        <header class="app-header"><a class="brand" href="#" data-page="page-guest">All Jao Games<span>.</span></a><nav aria-label="เมนูเกมตู้คีบ"><button class="nav-button nav-current" data-page="page-guest">เกมทั้งหมด</button><button class="nav-button admin-only" data-page="page-claw-admin" hidden>ตั้งค่าเกม</button><span class="user-badge">LET’S PLAY</span></nav></header>
+        <header class="app-header"><a class="brand" href="#" data-page="page-guest">A Place on earth<span>.</span></a><nav aria-label="เมนูเกมตู้คีบ"><button class="nav-button nav-current" data-page="page-guest">เกมทั้งหมด</button><button class="nav-button admin-only" data-page="page-claw-admin" hidden>ตั้งค่าเกม</button><span class="user-badge">LET’S PLAY</span></nav></header>
         <main class="page-content claw-content">
             <div class="title-row"><div><div class="eyebrow">GAME 03 · CAPSULE CLAW</div><h1 id="claw-title" class="page-title">คีบความสุข เปิดกล่องเซอร์ไพรส์</h1><p class="page-subtitle">ขยับแขนคีบไปซ้ายหรือขวา แล้วกดคีบเพื่อลุ้นของรางวัล</p></div></div>
-            <section class="claw-machine" aria-label="ตู้คีบแคปซูลสองมิติ">
-                <div class="claw-marquee"><span>ALL JAO</span><strong>CAPSULE CLAW</strong><span>✦ PLAY ✦</span></div>
+            <section class="claw-machine" aria-label="ตู้คีบลูกบอลสองมิติ">
+                <div class="claw-marquee"><span>A Place on earth</span><strong>CAPSULE CLAW</strong><span>✦ PLAY ✦</span></div>
                 <div id="claw-cabinet" class="claw-cabinet">
                     <div id="claw-stock-count" class="claw-stock-count" role="status">ในตู้ 0 ลูก</div>
                     <div class="claw-rail"><div id="claw-carriage" class="claw-carriage"><span class="claw-cable"></span><span class="claw-head"></span><span class="claw-finger claw-finger-left"></span><span class="claw-finger claw-finger-right"></span><span id="claw-caught" class="claw-caught"></span></div></div>
@@ -95,35 +112,45 @@
                 <div class="claw-console"><button id="claw-left" class="claw-control" type="button" aria-label="เลื่อนแขนคีบไปทางซ้าย">←<small>ซ้าย</small></button><div class="claw-status-wrap"><p id="claw-status" role="status">เลือกตำแหน่ง แล้วกดคีบได้เลย</p><small>ใช้ปุ่ม ← → บนคีย์บอร์ด และ Space เพื่อคีบได้</small></div><button id="claw-right" class="claw-control" type="button" aria-label="เลื่อนแขนคีบไปทางขวา">→<small>ขวา</small></button><button id="claw-drop" class="claw-drop" type="button"><span>คีบ!</span><small>CLAW</small></button></div>
             </section>
         </main>
-        <footer class="app-footer"><span>All Jao Games</span><span>Move. Grab. Unwrap a little joy.</span></footer>
+        <footer class="app-footer"><span>A Place on earth</span><span>Move. Grab. Unwrap a little joy.</span></footer>
     </section>
     <section id="page-memory" class="page app-page" aria-labelledby="memory-title">
-        <header class="app-header"><a class="brand" href="#" data-page="page-guest">All Jao Games<span>.</span></a><nav aria-label="เมนูเกมจับคู่"><button class="nav-button nav-current" data-page="page-guest">เกมทั้งหมด</button><button class="nav-button admin-only" data-page="page-admin" hidden>ตั้งค่าเกม</button><span class="user-badge">LET’S PLAY</span></nav></header>
+        <header class="app-header"><a class="brand" href="#" data-page="page-guest">A Place on earth<span>.</span></a><nav aria-label="เมนูเกมจับคู่"><button class="nav-button nav-current" data-page="page-guest">เกมทั้งหมด</button><button class="nav-button admin-only" data-page="page-admin" hidden>ตั้งค่าเกม</button><span class="user-badge">LET’S PLAY</span></nav></header>
         <main class="page-content memory-content">
             <div class="title-row"><div><div class="eyebrow">GAME 02 · MEMORY MATCH</div><h1 id="memory-title" class="page-title">จับคู่รูปภาพให้ครบ</h1><p class="page-subtitle">เปิดการ์ดทีละสองใบ จับคู่ให้ครบก่อนเวลาจะหมด</p></div><button id="memory-start" type="button" class="button button-primary"><svg class="icon"><use href="#i-spark"/></svg> เริ่มเกม</button></div>
             <section class="memory-stage" aria-label="กระดานเกมจับคู่รูปภาพ"><div class="memory-status"><div><span class="eyebrow">เวลาที่เหลือ</span><strong id="memory-timer">01:30</strong></div><div><span class="eyebrow">จับคู่แล้ว</span><strong><span id="memory-matches">0</span> / <span id="memory-total">8</span></strong></div><p id="memory-status-text" class="memory-status-text" role="status">กดเริ่มเกมเพื่อสุ่มตำแหน่งการ์ด</p></div><div id="memory-board" class="memory-board" aria-live="polite"></div></section>
         </main>
-        <footer class="app-footer"><span>All Jao Games</span><span>Find the pairs before time runs out.</span></footer>
+        <footer class="app-footer"><span>A Place on earth</span><span>Find the pairs before time runs out.</span></footer>
     </section>
     <section id="page-wheel" class="page app-page" aria-labelledby="wheel-title">
-        <header class="app-header"><a class="brand" href="#" data-page="page-guest">All Jao Games<span>.</span></a><nav aria-label="เมนูเกม"><button class="nav-button" data-page="page-guest">เกมทั้งหมด</button><button class="nav-button admin-only" data-page="page-admin" hidden> ตั้งค่าเกม</button><span class="user-badge">LET’S PLAY</span></nav></header>
+        <header class="app-header"><a class="brand" href="#" data-page="page-guest">A Place on earth<span>.</span></a><nav aria-label="เมนูเกม"><button class="nav-button" data-page="page-guest">เกมทั้งหมด</button><button class="nav-button admin-only" data-page="page-admin" hidden> ตั้งค่าเกม</button><span class="user-badge">LET’S PLAY</span></nav></header>
         <main class="page-content">
-            <div class="title-row"><div><div class="eyebrow">GAME 01 · LUCKY WHEEL</div><h1 id="wheel-title" class="page-title">หมุนความสนุก ลุ้นความโชคดี</h1><p class="page-subtitle">ของขวัญชิ้นต่อไป อาจเป็นของคุณ</p></div></div>
+            <div class="title-row"><div><div class="eyebrow">THE HALLOWEEN LUCKY WHEEL</div><h1 id="wheel-title" class="page-title">หมุนวงล้อ คืนปล่อยผี</h1><p class="page-subtitle">ให้ฟักทองเสกโชค แล้วลุ้นของขวัญจากคาเฟ่ไปด้วยกัน</p></div></div>
             <div class="play-layout">
                 <section class="wheel-stage" aria-label="วงล้อสุ่มของรางวัล">
+                    <div class="wheel-haunting" aria-hidden="true" inert>
+                        <div class="wheel-moon"><span></span></div>
+                        <svg class="wheel-cobweb cobweb-left" viewBox="0 0 160 160"><use href="#i-halloween-web"/></svg><svg class="wheel-cobweb cobweb-right" viewBox="0 0 160 160"><use href="#i-halloween-web"/></svg>
+                        <span class="wheel-bat flight-one"><svg viewBox="0 0 100 50"><use href="#i-halloween-bat"/></svg></span><span class="wheel-bat flight-two"><svg viewBox="0 0 100 50"><use href="#i-halloween-bat"/></svg></span><span class="wheel-bat flight-three"><svg viewBox="0 0 100 50"><use href="#i-halloween-bat"/></svg></span>
+                        <svg class="wheel-ghost ghost-left" viewBox="0 0 64 72"><use href="#i-halloween-ghost"/></svg><svg class="wheel-ghost ghost-right" viewBox="0 0 64 72"><use href="#i-halloween-ghost"/></svg>
+                        <svg class="wheel-landscape" viewBox="0 0 900 230" preserveAspectRatio="xMidYMax slice"><use href="#i-haunted-landscape"/></svg>
+                        <div class="wheel-fog fog-back"></div><div class="wheel-fog fog-front"></div>
+                        <div class="wheel-embers"></div>
+                    </div>
+                    <div class="wheel-spell-badge" aria-hidden="true"><span>✦</span> TRICK OR TREAT <span>✦</span></div>
                     <span class="stage-star stage-star-one" aria-hidden="true">✦</span><span class="stage-star stage-star-two" aria-hidden="true">✧</span>
-                    <button id="spin-button" type="button" class="wheel-frame wheel-trigger" aria-labelledby="spin-label" aria-describedby="spin-status"><span class="wheel-pointer" aria-hidden="true"></span><canvas id="game-wheel" width="900" height="900" role="img" aria-label="วงล้อสุ่มของรางวัล"></canvas><span class="wheel-hub"><span aria-hidden="true">Jao</span><small id="spin-label">กดเพื่อสุ่ม</small></span></button>
+                    <div class="wheel-ritual"><div class="ritual-orbit" aria-hidden="true"><span>✦</span><span>✧</span><span>✦</span><span>✧</span></div><button id="spin-button" type="button" class="wheel-frame wheel-trigger" aria-labelledby="spin-label" aria-describedby="spin-status"><span class="wheel-pointer" aria-hidden="true"></span><canvas id="game-wheel" width="900" height="900" role="img" aria-label="วงล้อสุ่มของรางวัล"></canvas><span class="wheel-hub"><span aria-hidden="true"><svg class="pumpkin-mark" viewBox="0 0 64 64" aria-hidden="true"><use href="#i-pumpkin"/></svg></span><small id="spin-label">กดเพื่อสุ่ม</small></span></button></div>
                     <div class="wheel-controls"><p id="spin-status" class="spin-status" role="status">พร้อมลุ้นแล้วหรือยัง?</p><p class="micro-copy">กดที่วงล้อ 1 ครั้ง แล้วรอวงล้อหยุดเพื่อดูผลรางวัล</p></div>
                 </section>
             </div>
         </main>
-        <footer class="app-footer"><span>All Jao Games</span><span>A little spin. A little surprise.</span></footer>
+        <footer class="app-footer"><span>A Place on earth</span><span>A little spin. A little surprise.</span></footer>
     </section>
     <section id="page-admin" class="page app-page" aria-labelledby="admin-title">
-        <header class="app-header"><a class="brand" href="#" data-page="page-guest">All Jao Games<span>.</span></a><nav aria-label="เมนูแอดมิน"><button class="nav-button" data-page="page-guest">เกมทั้งหมด</button><span class="nav-current">ตั้งค่าเกม</span><span class="user-badge">ADMIN</span><button class="nav-button" data-action="logout">ออกจากระบบ <svg class="icon"><use href="#i-arrow"/></svg></button></nav></header>
+        <header class="app-header"><a class="brand" href="#" data-page="page-guest">A Place on earth<span>.</span></a><nav aria-label="เมนูแอดมิน"><button class="nav-button" data-page="page-guest">เกมทั้งหมด</button><span class="nav-current">ตั้งค่าเกม</span><span class="user-badge">ADMIN</span><button class="nav-button" data-action="logout">ออกจากระบบ <svg class="icon"><use href="#i-arrow"/></svg></button></nav></header>
         <main class="page-content admin-content">
             <div class="title-row"><div><div class="eyebrow">GAME 01 · SPIN WHEEL</div><h1 id="admin-title" class="page-title">ตั้งค่าเกมวงล้อสุ่ม</h1><p class="page-subtitle">ออกแบบวงล้อให้พอดีกับงานของคุณ</p></div><button class="button button-secondary" data-page="page-wheel"><svg class="icon"><use href="#i-wheel"/></svg> ไปหน้าเล่นเกม</button></div>
-            <div class="game-tabs" aria-label="เลือกเกมที่ต้องการตั้งค่า"><span class="game-tab selected"><svg class="icon"><use href="#i-wheel"/></svg> 01 · วงล้อสุ่ม</span><button class="game-tab" type="button" data-page="page-memory-admin">02 · จับคู่รูปภาพ</button><button class="game-tab" type="button" data-page="page-claw-admin">03 · ตู้คีบแคปซูล</button><button class="game-tab" disabled>04 · เร็ว ๆ นี้ <svg class="icon"><use href="#i-lock"/></svg></button></div>
+            <div class="game-tabs" aria-label="เลือกเกมที่ต้องการตั้งค่า"><span class="game-tab selected"><svg class="icon"><use href="#i-wheel"/></svg> 01 · วงล้อสุ่ม</span><button class="game-tab" type="button" data-page="page-memory-admin">02 · จับคู่รูปภาพ</button><button class="game-tab" type="button" data-page="page-claw-admin">03 · ตู้คีบลูกบอล</button><button class="game-tab" disabled>04 · เร็ว ๆ นี้ <svg class="icon"><use href="#i-lock"/></svg></button></div>
             <form id="settings-form" novalidate>
                 <div class="admin-layout">
                     <div class="settings-main">
@@ -135,10 +162,10 @@
                         </section>
                         <section class="panel mode-panel"><div class="section-heading"><div><h2>กำหนดโอกาสในแบบของคุณ</h2><p class="micro-copy">เลือกการสุ่มที่เหมาะกับงาน</p></div><svg class="icon mode-icon"><use href="#i-spark"/></svg></div><label class="checkbox-card" for="equal-chance"><input type="checkbox" id="equal-chance"><span><strong>ให้ของทุกชิ้นมีโอกาสออกเท่ากัน</strong><small>ทุกชิ้นที่ยังเหลือมีโอกาสเท่ากัน โดยไม่ใช้เรทที่ตั้งไว้ โอกาสรวมของแต่ละชนิดขึ้นกับจำนวนคงเหลือ แต่แสดงเพียง 1 ช่องต่อชนิด</small></span></label><p id="mode-explanation" class="panel-note">เมื่อไม่ติ๊ก ระบบจะสุ่มตามน้ำหนักที่ตั้งไว้และหยุดอัตโนมัติ</p></section>
                     </div>
-                    <aside class="panel preview-panel"><span class="eyebrow">A LITTLE PREVIEW</span><h2>วงล้อของคุณ</h2><div class="wheel-frame preview-wheel-frame"><div class="wheel-pointer" aria-hidden="true"></div><canvas id="preview-wheel" width="600" height="600" role="img" aria-label="ตัวอย่างวงล้อตามค่าที่กำลังแก้ไข"></canvas><div class="wheel-hub" aria-hidden="true"><span>Jao</span></div></div><div class="preview-stats"><div><strong id="preview-items">0</strong><span>ของรางวัล</span></div><div><strong id="preview-segments">0</strong><span>คงเหลือ (ชิ้น)</span></div></div><p class="micro-copy">ตัวอย่างเปลี่ยนตามที่แก้ไข<br>บันทึกเพื่อใช้ในหน้าเล่นเกม</p></aside>
+                    <aside class="panel preview-panel"><span class="eyebrow">A LITTLE PREVIEW</span><h2>วงล้อของคุณ</h2><div class="wheel-frame preview-wheel-frame"><div class="wheel-pointer" aria-hidden="true"></div><canvas id="preview-wheel" width="600" height="600" role="img" aria-label="ตัวอย่างวงล้อตามค่าที่กำลังแก้ไข"></canvas><div class="wheel-hub" aria-hidden="true"><span><svg class="pumpkin-mark" viewBox="0 0 64 64" aria-hidden="true"><use href="#i-pumpkin"/></svg></span></div></div><div class="preview-stats"><div><strong id="preview-items">0</strong><span>ของรางวัล</span></div><div><strong id="preview-segments">0</strong><span>คงเหลือ (ชิ้น)</span></div></div><p class="micro-copy">ตัวอย่างเปลี่ยนตามที่แก้ไข<br>บันทึกเพื่อใช้ในหน้าเล่นเกม</p></aside>
                 </div>
                 <div id="settings-errors" class="form-errors" role="alert" hidden></div>
-                <div class="save-bar"><div><span id="save-status" class="save-status" role="status">ใช้การตั้งค่าเริ่มต้น</span><p class="micro-copy">การตั้งค่าจะถูกเก็บในเบราว์เซอร์นี้</p></div><div class="save-actions"><button type="button" id="discard-settings" class="button button-quiet" disabled>ยกเลิกการแก้ไข</button><button type="submit" id="save-settings" class="button button-primary"><svg class="icon"><use href="#i-check"/></svg> บันทึกการตั้งค่า</button></div></div>
+                <div class="save-bar"><div><span id="save-status" class="save-status" role="status">ใช้การตั้งค่าเริ่มต้น</span><p class="micro-copy" data-storage-copy>โหมดทดลอง · เก็บข้อมูลในเครื่องนี้</p></div><div class="save-actions"><button type="button" id="discard-settings" class="button button-quiet" disabled>ยกเลิกการแก้ไข</button><button type="submit" id="save-settings" class="button button-primary"><svg class="icon"><use href="#i-check"/></svg> บันทึกการตั้งค่า</button></div></div>
             </form>
             <section class="panel logs-panel" aria-labelledby="logs-title">
                 <div class="section-heading"><div><div class="eyebrow">SPIN HISTORY</div><h2 id="logs-title">ประวัติการออกรางวัล</h2><p id="log-count" class="micro-copy" role="status">ยังไม่มีประวัติ</p></div><div class="log-actions"><button type="button" id="export-logs" class="button button-secondary"><svg class="icon"><use href="#i-arrow"/></svg> ส่งออก CSV</button><button type="button" id="reset-stock" class="button button-secondary"><svg class="icon"><use href="#i-reset"/></svg> เริ่มสต็อกใหม่</button><button type="button" id="clear-logs" class="button button-danger"><svg class="icon"><use href="#i-trash"/></svg> ลบประวัติทั้งหมด</button></div></div>
@@ -148,34 +175,45 @@
                 <p class="micro-copy">ประวัติและสต็อกบันทึกในเบราว์เซอร์นี้ · ไฟล์ CSV ส่งออกประวัติทั้งหมดที่ยังไม่ได้ลบ</p>
             </section>
         </main>
-        <footer class="app-footer"><span>All Jao Games</span><span>Your game. Your little details.</span></footer>
+        <footer class="app-footer"><span>A Place on earth</span><span>Your game. Your little details.</span></footer>
     </section>
     <section id="page-memory-admin" class="page app-page" aria-labelledby="memory-admin-page-title">
-        <header class="app-header"><a class="brand" href="#" data-page="page-guest">All Jao Games<span>.</span></a><nav aria-label="เมนูตั้งค่าเกมจับคู่"><button class="nav-button" data-page="page-guest">เกมทั้งหมด</button><button class="nav-button nav-current" data-page="page-admin"> ตั้งค่าเกม</button><span class="user-badge">ADMIN</span><button class="nav-button" data-action="logout">ออกจากระบบ <svg class="icon"><use href="#i-arrow"/></svg></button></nav></header>
+        <header class="app-header"><a class="brand" href="#" data-page="page-guest">A Place on earth<span>.</span></a><nav aria-label="เมนูตั้งค่าเกมจับคู่"><button class="nav-button" data-page="page-guest">เกมทั้งหมด</button><button class="nav-button nav-current" data-page="page-admin"> ตั้งค่าเกม</button><span class="user-badge">ADMIN</span><button class="nav-button" data-action="logout">ออกจากระบบ <svg class="icon"><use href="#i-arrow"/></svg></button></nav></header>
         <main class="page-content admin-content memory-admin-page-content">
             <div class="title-row"><div><div class="eyebrow">GAME 02 · MEMORY MATCH</div><h1 id="memory-admin-page-title" class="page-title">ตั้งค่าเกมจับคู่รูปภาพ</h1><p class="page-subtitle">แก้ไขรูปภาพ เพิ่มคู่ และกำหนดเวลาของเกมนี้</p></div><button class="button button-secondary" data-page="page-memory"><svg class="icon"><use href="#i-spark"/></svg> ไปหน้าเล่นเกม</button></div>
-            <div class="game-tabs" aria-label="เลือกเกมที่ต้องการตั้งค่า"><button class="game-tab" type="button" data-page="page-admin"><svg class="icon"><use href="#i-wheel"/></svg> 01 · วงล้อสุ่ม</button><span class="game-tab selected">02 · จับคู่รูปภาพ</span><button class="game-tab" type="button" data-page="page-claw-admin">03 · ตู้คีบแคปซูล</button><button class="game-tab" disabled>04 · เร็ว ๆ นี้ <svg class="icon"><use href="#i-lock"/></svg></button></div>
+            <div class="game-tabs" aria-label="เลือกเกมที่ต้องการตั้งค่า"><button class="game-tab" type="button" data-page="page-admin"><svg class="icon"><use href="#i-wheel"/></svg> 01 · วงล้อสุ่ม</button><span class="game-tab selected">02 · จับคู่รูปภาพ</span><button class="game-tab" type="button" data-page="page-claw-admin">03 · ตู้คีบลูกบอล</button><button class="game-tab" disabled>04 · เร็ว ๆ นี้ <svg class="icon"><use href="#i-lock"/></svg></button></div>
             <section id="memory-admin-panel" class="panel memory-admin-panel" aria-labelledby="memory-admin-title"><div class="section-heading"><div><h2 id="memory-admin-title">รูปภาพและกติกา</h2><p class="micro-copy">แก้ไขรูปทั้งสองด้าน เพิ่มคู่ และกำหนดเวลาสำหรับหนึ่งรอบ</p></div><button id="memory-add-pair" type="button" class="button button-secondary button-small"><svg class="icon"><use href="#i-plus"/></svg> เพิ่มคู่</button></div><div class="memory-settings-row"><label class="field-group"><span class="field-label">เวลาต่อรอบ (วินาที)</span><input id="memory-time-limit" class="editor-input" type="number" min="10" max="600" step="1"></label><label class="field-group"><span class="field-label">จำนวนช่องที่เล่น</span><input id="memory-slot-count" class="editor-input" type="number" min="4" max="60" step="2"></label><span id="memory-admin-summary" class="micro-copy"></span></div><div id="memory-pair-editor" class="memory-pair-editor"></div><div class="save-bar memory-save-bar"><span id="memory-save-status" class="save-status">ใช้การตั้งค่าเกมจับคู่</span><button id="memory-save" type="button" class="button button-primary"><svg class="icon"><use href="#i-check"/></svg> บันทึกเกมจับคู่</button></div></section>
         </main>
-        <footer class="app-footer"><span>All Jao Games</span><span>Your game. Your little details.</span></footer>
+        <footer class="app-footer"><span>A Place on earth</span><span>Your game. Your little details.</span></footer>
     </section>
     <section id="page-claw-admin" class="page app-page" aria-labelledby="claw-admin-title">
-        <header class="app-header"><a class="brand" href="#" data-page="page-guest">All Jao Games<span>.</span></a><nav aria-label="เมนูตั้งค่าเกมตู้คีบ"><button class="nav-button" data-page="page-guest">เกมทั้งหมด</button><button class="nav-button nav-current" data-page="page-admin">ตั้งค่าเกม</button><span class="user-badge">ADMIN</span><button class="nav-button" data-action="logout">ออกจากระบบ <svg class="icon"><use href="#i-arrow"/></svg></button></nav></header>
+        <header class="app-header"><a class="brand" href="#" data-page="page-guest">A Place on earth<span>.</span></a><nav aria-label="เมนูตั้งค่าเกมตู้คีบ"><button class="nav-button" data-page="page-guest">เกมทั้งหมด</button><button class="nav-button nav-current" data-page="page-admin">ตั้งค่าเกม</button><span class="user-badge">ADMIN</span><button class="nav-button" data-action="logout">ออกจากระบบ <svg class="icon"><use href="#i-arrow"/></svg></button></nav></header>
         <main class="page-content admin-content">
-            <div class="title-row"><div><div class="eyebrow">GAME 03 · CAPSULE CLAW</div><h1 id="claw-admin-title" class="page-title">ตั้งค่าเกมตู้คีบแคปซูล</h1><p class="page-subtitle">กำหนดจำนวนของรางวัลและเรทการออกแยกจากเกมวงล้อ</p></div><button class="button button-secondary" data-page="page-claw"><svg class="icon"><use href="#i-spark"/></svg> ไปหน้าเล่นเกม</button></div>
-            <div class="game-tabs" aria-label="เลือกเกมที่ต้องการตั้งค่า"><button class="game-tab" type="button" data-page="page-admin"><svg class="icon"><use href="#i-wheel"/></svg> 01 · วงล้อสุ่ม</button><button class="game-tab" type="button" data-page="page-memory-admin">02 · จับคู่รูปภาพ</button><span class="game-tab selected">03 · ตู้คีบแคปซูล</span><button class="game-tab" disabled>04 · เร็ว ๆ นี้ <svg class="icon"><use href="#i-lock"/></svg></button></div>
+            <div class="title-row"><div><div class="eyebrow">GAME 03 · CAPSULE CLAW</div><h1 id="claw-admin-title" class="page-title">ตั้งค่าเกมตู้คีบลูกบอล</h1><p class="page-subtitle">กำหนดจำนวนของรางวัลและเรทการออกแยกจากเกมวงล้อ</p></div><button class="button button-secondary" data-page="page-claw"><svg class="icon"><use href="#i-spark"/></svg> ไปหน้าเล่นเกม</button></div>
+            <div class="game-tabs" aria-label="เลือกเกมที่ต้องการตั้งค่า"><button class="game-tab" type="button" data-page="page-admin"><svg class="icon"><use href="#i-wheel"/></svg> 01 · วงล้อสุ่ม</button><button class="game-tab" type="button" data-page="page-memory-admin">02 · จับคู่รูปภาพ</button><span class="game-tab selected">03 · ตู้คีบลูกบอล</span><button class="game-tab" disabled>04 · เร็ว ๆ นี้ <svg class="icon"><use href="#i-lock"/></svg></button></div>
             <form id="claw-settings-form" novalidate>
                 <section class="panel settings-panel"><div class="section-heading"><div><h2>ของรางวัลในแคปซูล</h2><p class="micro-copy">ระบบตัดสต็อกครั้งละ 1 ชิ้นหลังคีบสำเร็จ</p></div><button type="button" id="claw-add-prize" class="button button-secondary button-small"><svg class="icon"><use href="#i-plus"/></svg> เพิ่มรายการ</button></div>
                     <div class="prize-table-wrap"><table class="prize-table"><thead><tr><th scope="col">สี</th><th scope="col">ชื่อของรางวัล</th><th scope="col">ทั้งหมด (ชิ้น)</th><th scope="col">จ่ายแล้ว</th><th scope="col">คงเหลือ</th><th scope="col">น้ำหนักสุ่ม</th><th scope="col">โอกาสออก</th><th scope="col"><span class="sr-only">ลบ</span></th></tr></thead><tbody id="claw-prize-editor"></tbody></table></div>
                     <p class="table-scroll-hint">เลื่อนตารางไปทางขวาเพื่อปรับเรทและลบรายการ →</p><div class="table-footer"><span id="claw-editor-total">0 รายการ · เหลือ 0 ชิ้น</span><span>สูงสุด 30 รายการ · รายการละ 999,999 ชิ้น</span></div><p id="claw-weight-explanation" class="panel-note"></p>
                 </section>
                 <section class="panel mode-panel claw-mode-panel"><div class="section-heading"><div><h2>กำหนดโอกาสการออก</h2><p class="micro-copy">ใช้วิธีคำนวณแบบเดียวกับเกม 01</p></div><svg class="icon mode-icon"><use href="#i-spark"/></svg></div><label class="checkbox-card" for="claw-equal-chance"><input type="checkbox" id="claw-equal-chance"><span><strong>ให้ของทุกชิ้นมีโอกาสออกเท่ากัน</strong><small>เมื่อเปิด โอกาสของแต่ละชนิดจะขึ้นกับจำนวนคงเหลือ โดยไม่ใช้น้ำหนักสุ่ม</small></span></label></section>
-                <div id="claw-settings-errors" class="form-errors" role="alert" hidden></div><div class="save-bar"><div><span id="claw-save-status" class="save-status" role="status">ใช้การตั้งค่าเริ่มต้น</span><p class="micro-copy">การตั้งค่าและสต็อกเก็บในเบราว์เซอร์นี้</p></div><div class="save-actions"><button type="button" id="claw-discard-settings" class="button button-quiet">ยกเลิกการแก้ไข</button><button type="submit" id="claw-save-settings" class="button button-primary"><svg class="icon"><use href="#i-check"/></svg> บันทึกการตั้งค่า</button></div></div>
+                <div id="claw-settings-errors" class="form-errors" role="alert" hidden></div><div class="save-bar"><div><span id="claw-save-status" class="save-status" role="status">ใช้การตั้งค่าเริ่มต้น</span><p class="micro-copy" data-storage-copy>โหมดทดลอง · เก็บข้อมูลในเครื่องนี้</p></div><div class="save-actions"><button type="button" id="claw-discard-settings" class="button button-quiet">ยกเลิกการแก้ไข</button><button type="submit" id="claw-save-settings" class="button button-primary"><svg class="icon"><use href="#i-check"/></svg> บันทึกการตั้งค่า</button></div></div>
             </form>
             <section class="panel logs-panel" aria-labelledby="claw-logs-title"><div class="section-heading"><div><div class="eyebrow">CLAW HISTORY</div><h2 id="claw-logs-title">ประวัติการออกรางวัล</h2><p id="claw-log-count" class="micro-copy" role="status">ยังไม่มีประวัติ</p></div><div class="log-actions"><button type="button" id="claw-export-logs" class="button button-secondary"><svg class="icon"><use href="#i-arrow"/></svg> ส่งออก CSV</button><button type="button" id="claw-reset-stock" class="button button-secondary"><svg class="icon"><use href="#i-reset"/></svg> เริ่มสต็อกใหม่</button><button type="button" id="claw-clear-logs" class="button button-danger"><svg class="icon"><use href="#i-trash"/></svg> ลบประวัติทั้งหมด</button></div></div><p class="panel-note stock-note">ของรางวัลที่หมดจะไม่ถูกสุ่ม · เพิ่มสต็อกได้โดยเพิ่มจำนวนทั้งหมดแล้วบันทึก · การลบประวัติจะไม่คืนสต็อก</p><div class="log-table-wrap"><table class="log-table"><thead><tr><th scope="col">วัน / เวลา</th><th scope="col">ของรางวัล</th><th scope="col">ออก (ชิ้น)</th><th scope="col">เหลือหลังสุ่ม</th><th scope="col">จัดการ</th></tr></thead><tbody id="claw-log-rows"></tbody></table></div><div class="log-pagination"><span id="claw-log-page-info" class="micro-copy"></span><div><button id="claw-logs-prev" class="button button-quiet button-small" type="button">ก่อนหน้า</button><button id="claw-logs-next" class="button button-quiet button-small" type="button">ถัดไป</button></div></div><p class="micro-copy">ไฟล์ CSV ส่งออกประวัติทั้งหมดที่ยังไม่ได้ลบ</p></section>
         </main>
-        <footer class="app-footer"><span>All Jao Games</span><span>Your game. Your little details.</span></footer>
+        <footer class="app-footer"><span>A Place on earth</span><span>Your game. Your little details.</span></footer>
     </section>
+    <dialog id="memory-crop-dialog" class="app-dialog memory-crop-dialog" aria-labelledby="memory-crop-title" aria-describedby="memory-crop-help">
+        <div class="memory-crop-content">
+            <div><div class="eyebrow">MEMORY MATCH</div><h2 id="memory-crop-title">ครอบตัดรูปภาพ</h2></div>
+            <p id="memory-crop-help" class="micro-copy">ลากภาพเพื่อเลือกส่วนที่ต้องการ แล้วปรับซูม ภาพในกรอบจะเป็นภาพบนการ์ด</p>
+            <div id="memory-crop-frame" class="memory-crop-frame" hidden><canvas id="memory-crop-preview" width="512" height="512" tabindex="0" role="img" aria-label="ตัวอย่างภาพที่ครอบตัด ลากภาพหรือใช้ปุ่มลูกศรเพื่อเลื่อนภาพ" aria-describedby="memory-crop-help"></canvas><span class="memory-crop-grid" aria-hidden="true"></span></div>
+            <div class="memory-crop-controls"><label for="memory-crop-zoom">ซูมภาพ <output id="memory-crop-zoom-value" for="memory-crop-zoom">100%</output></label><input id="memory-crop-zoom" type="range" min="1" max="4" step="0.01" value="1" disabled><button id="memory-crop-reset" class="button button-quiet button-small" type="button" disabled>เริ่มจัดภาพใหม่</button></div>
+            <label class="memory-crop-both"><input id="memory-crop-both" type="checkbox" checked><span>ใช้ภาพนี้กับทั้งสองใบในคู่เดียวกัน</span></label>
+            <p id="memory-crop-status" class="micro-copy" role="status" aria-live="polite"></p>
+            <div class="memory-crop-actions"><button id="memory-crop-cancel" class="button button-secondary" type="button" autofocus>ยกเลิก</button><button id="memory-crop-apply" class="button button-primary" type="button" disabled>ใช้ภาพนี้</button></div>
+        </div>
+    </dialog>
     <dialog id="custom-alert" class="app-dialog" aria-labelledby="alert-title"><div class="dialog-content"><div class="dialog-symbol">!</div><h2 id="alert-title">เข้าสู่ระบบไม่สำเร็จ</h2><p id="alert-message">Username หรือ Password ไม่ถูกต้อง</p><button class="button button-primary" data-close="custom-alert">เข้าใจแล้ว</button></div></dialog>
     <dialog id="result-dialog" class="app-dialog result-dialog" aria-labelledby="result-title"><div class="result-sparkles" aria-hidden="true">✧ &nbsp; ✦ &nbsp; ✧</div><div class="dialog-content"><div class="eyebrow">A LITTLE SURPRISE FOR YOU</div><div class="result-gift"><svg class="icon"><use href="#i-gift"/></svg></div><h2 id="result-title">วงล้อเลือกให้คุณแล้ว!</h2><p class="result-label" id="result-prize"></p><p class="micro-copy">อีกหนึ่งจังหวะดี ๆ ที่ได้ลุ้นไปด้วยกัน</p><button class="button button-primary" data-close="result-dialog">เล่นอีกครั้ง <svg class="icon"><use href="#i-arrow"/></svg></button></div></dialog>
     <dialog id="claw-result-dialog" class="app-dialog result-dialog claw-result-dialog" aria-labelledby="claw-result-title"><div class="result-sparkles" aria-hidden="true">✧ &nbsp; ✦ &nbsp; ✧</div><div class="dialog-content"><div class="eyebrow">CAPSULE OPEN!</div><div class="capsule-reveal" aria-hidden="true"><span class="capsule-half capsule-top"></span><span class="capsule-gift"><svg class="icon"><use href="#i-gift"/></svg></span><span class="capsule-half capsule-bottom"></span></div><h2 id="claw-result-title">เปิดแคปซูลแล้ว!</h2><p class="result-label" id="claw-result-prize"></p><p class="micro-copy">ยินดีด้วย ของขวัญชิ้นนี้เป็นของคุณ</p><button class="button button-primary" data-close="claw-result-dialog">เล่นอีกครั้ง <svg class="icon"><use href="#i-arrow"/></svg></button></div></dialog>
@@ -184,14 +222,14 @@
     <div id="toast" class="toast" role="status" hidden></div>
     <noscript><p class="noscript-note">กรุณาเปิด JavaScript เพื่อเข้าสู่ระบบและเล่นเกมวงล้อ</p></noscript>
     <section id="page-quiz-admin" class="page app-page" aria-labelledby="quiz-admin-title">
-        <header class="app-header"><a class="brand" href="#" data-page="page-guest">All Jao Games<span>.</span></a><nav aria-label="เมนูตั้งค่าเกมตอบคำถาม"><button class="nav-button" data-page="page-guest">เกมทั้งหมด</button><button class="nav-button nav-current" data-page="page-admin">ตั้งค่าเกม</button><span class="user-badge">ADMIN</span><button class="nav-button" data-action="logout">ออกจากระบบ <svg class="icon"><use href="#i-arrow"/></svg></button></nav></header>
+        <header class="app-header"><a class="brand" href="#" data-page="page-guest">A Place on earth<span>.</span></a><nav aria-label="เมนูตั้งค่าเกมตอบคำถาม"><button class="nav-button" data-page="page-guest">เกมทั้งหมด</button><button class="nav-button nav-current" data-page="page-admin">ตั้งค่าเกม</button><span class="user-badge">ADMIN</span><button class="nav-button" data-action="logout">ออกจากระบบ <svg class="icon"><use href="#i-arrow"/></svg></button></nav></header>
         <main class="page-content admin-content quiz-admin-content">
             <div class="title-row"><div><div class="eyebrow">GAME 04 · HOW WELL DO YOU KNOW ME?</div><h1 id="quiz-admin-title" class="page-title">ตั้งค่าเกมรู้ใจแค่ไหน</h1><p class="page-subtitle">สร้างคลังคำถาม ตัวเลือก และกำหนดคำตอบที่ถูกต้อง</p></div><button class="button button-secondary" data-page="page-quiz"><svg class="icon"><use href="#i-spark"/></svg> ไปหน้าเล่นเกม</button></div>
-            <div class="game-tabs" aria-label="เลือกเกมที่ต้องการตั้งค่า"><button class="game-tab" type="button" data-page="page-admin">01 · วงล้อสุ่ม</button><button class="game-tab" type="button" data-page="page-memory-admin">02 · จับคู่รูปภาพ</button><button class="game-tab" type="button" data-page="page-claw-admin">03 · ตู้คีบแคปซูล</button><span class="game-tab selected">04 · รู้ใจแค่ไหน</span></div>
+            <div class="game-tabs" aria-label="เลือกเกมที่ต้องการตั้งค่า"><button class="game-tab" type="button" data-page="page-admin">01 · วงล้อสุ่ม</button><button class="game-tab" type="button" data-page="page-memory-admin">02 · จับคู่รูปภาพ</button><button class="game-tab" type="button" data-page="page-claw-admin">03 · ตู้คีบลูกบอล</button><span class="game-tab selected">04 · รู้ใจแค่ไหน</span></div>
             <section class="panel quiz-admin-panel"><div class="section-heading"><div><h2>คลังคำถาม</h2><p id="quiz-question-summary" class="micro-copy">5 คำถาม · เล่นครั้งละ 5 ข้อ</p></div><button id="quiz-add-question" class="button button-secondary button-small" type="button"><svg class="icon"><use href="#i-plus"/></svg> เพิ่มคำถาม</button></div><div id="quiz-question-editor" class="quiz-question-editor"></div><div class="save-bar"><span id="quiz-save-status" class="save-status">ใช้ชุดคำถามที่บันทึกไว้</span><button id="quiz-save-questions" class="button button-primary" type="button"><svg class="icon"><use href="#i-check"/></svg> บันทึกคำถาม</button></div></section>
             <section class="panel logs-panel quiz-history-panel"><div class="section-heading"><div><div class="eyebrow">PLAYER HISTORY</div><h2>อันดับและประวัติผู้เล่น</h2><p id="quiz-admin-count" class="micro-copy">ผู้เล่นทั้งหมด 0 คน</p></div><button id="quiz-reset-players" class="button button-danger" type="button"><svg class="icon"><use href="#i-trash"/></svg> ลบอันดับทั้งหมด</button></div><p class="panel-note">ข้อมูลผู้เล่นจะเก็บไว้ทั้งหมดจนกว่าแอดมินจะลบ สามารถลบรายคนหรือล้างทั้งหมดได้</p><div class="quiz-rank-head quiz-admin-rank-head"><span>อันดับ</span><span>ชื่อ</span><span>คะแนน</span><span>เวลา</span><span>จัดการ</span></div><div id="quiz-admin-players" class="quiz-rank-list"></div></section>
         </main>
-        <footer class="app-footer"><span>All Jao Games</span><span>Your questions. Their fastest answers.</span></footer>
+        <footer class="app-footer"><span>A Place on earth</span><span>Your questions. Their fastest answers.</span></footer>
     </section>
 </body>
 </html>
