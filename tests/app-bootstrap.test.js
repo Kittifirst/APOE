@@ -16,8 +16,10 @@ async function boot(t, cloud) {
             requests.push(parsed.pathname);
             const name = parsed.pathname.replace(/^\/my-cafe\//, '');
             if (!publicFiles.includes(name)) { response.writeHead(404).end(); return; }
-            const source = name === 'app/app-config.js' && cloud
-                ? "window.JAO_CONFIG = { googleSheetsUrl: 'https://script.google.com/macros/s/test/exec' };"
+            const source = name === 'app/app-config.js'
+                ? 'window.JAO_CONFIG = ' + JSON.stringify({
+                    googleSheetsUrl: cloud ? 'https://script.google.com/macros/s/test/exec' : ''
+                }) + ';'
                 : fs.readFileSync(path.join(ROOT, name));
             response.writeHead(200, { 'Content-Type': 'text/javascript; charset=utf-8' });
             response.end(source);
